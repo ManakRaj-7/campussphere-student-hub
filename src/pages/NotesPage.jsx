@@ -877,7 +877,7 @@ const NotesPage = () => {
                         : 'bg-slate-50 dark:bg-slate-900 dark:text-white rounded-tl-none border border-slate-100 dark:border-slate-800 shadow-inner'
                     }`}
                   >
-                    {msg.content}
+                    {msg.content.replace(/\*\*/g, '')}
                   </div>
                 </div>
               ))

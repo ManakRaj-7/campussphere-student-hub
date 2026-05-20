@@ -225,7 +225,10 @@ const TopBar = () => {
           </div>
 
           {/* Settings */}
-          <button className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors">
+          <button 
+            onClick={() => navigate('/profile')}
+            className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          >
             <Icon name="settings" className="text-xl" />
           </button>
 

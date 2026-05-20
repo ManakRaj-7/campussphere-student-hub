@@ -210,10 +210,11 @@ export const diagnoseResumeController = async (req, res, next) => {
 
       if (ext === 'pdf') {
         const dataBuffer = fs.readFileSync(tempFilePath);
-        const pdfModule = await import('pdf-parse');
-        const pdfParseFunc = pdfModule.default || (pdfModule.PDFParse ? pdfModule.PDFParse : pdfModule);
-        const parsed = typeof pdfParseFunc === 'function' ? await pdfParseFunc(dataBuffer) : await pdfModule.default(dataBuffer);
+        const { PDFParse } = await import('pdf-parse');
+        const parser = new PDFParse({ data: dataBuffer });
+        const parsed = await parser.getText();
         resumeContent = parsed.text;
+        await parser.destroy();
       } else if (ext === 'docx' || ext === 'doc') {
         const parsed = await mammoth.extractRawText({ path: tempFilePath });
         resumeContent = parsed.value;

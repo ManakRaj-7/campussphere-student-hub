@@ -68,7 +68,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // Index on email for fast lookup
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ department: 1 });
 

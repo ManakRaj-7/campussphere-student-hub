@@ -7,11 +7,9 @@ class OpenRouterModel {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.models = [
+      'z-ai/glm-4.5-air:free',
       'meta-llama/llama-3.3-70b-instruct:free',
-      'qwen/qwen3-coder:free',
-      'deepseek/deepseek-r1:free',
-      'nvidia/llama-3.1-nemotron-nano-8b-v1:free',
-      'z-ai/glm-4.5-air:free'
+      'qwen/qwen3-coder:free'
     ];
   }
   

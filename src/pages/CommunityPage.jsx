@@ -139,12 +139,30 @@ const CommunityPage = () => {
         } else if (activeTab === 'clubs') {
           const response = await api.get('/clubs');
           if (response.data.success) {
-            setClubs(response.data.data);
+            let fetchedClubs = response.data.data || [];
+            if (fetchedClubs.length === 0) {
+              fetchedClubs = [
+                { _id: 'c1', name: 'Google Developer Student Club', memberCount: 234, description: 'A community for students interested in Google developer technologies. Build solutions for local businesses.', icon: 'code', color: '#4285F4', isMember: false },
+                { _id: 'c2', name: 'Quantum Hackers & Robotics', memberCount: 156, description: 'Building the future of embedded systems, drones, and autonomous robotics with AI.', icon: 'smart_toy', color: '#ec4899', isMember: false },
+                { _id: 'c3', name: 'Campus Investment Group', memberCount: 89, description: 'Learn stock market strategies, financial literacy, and cryptocurrency investments.', icon: 'trending_up', color: '#10b981', isMember: false },
+                { _id: 'c4', name: 'Crescendo Music Society', memberCount: 412, description: 'From classical to indie rock. We host campus concerts and weekly jam sessions.', icon: 'music_note', color: '#f59e0b', isMember: false }
+              ];
+            }
+            setClubs(fetchedClubs);
           }
         } else if (activeTab === 'events') {
           const response = await api.get('/events');
           if (response.data.success) {
-            setEvents(response.data.data);
+            let fetchedEvents = response.data.data || [];
+            if (fetchedEvents.length === 0) {
+              fetchedEvents = [
+                { _id: 'e1', title: 'Silicon Valley AI Summit Watchparty', category: 'workshop', location: 'Main Auditorium', date: new Date(Date.now() + 86400000).toISOString(), attendeeCount: 450, isAttending: false, description: 'Join us for a live broadcast of the annual AI Summit.' },
+                { _id: 'e2', title: 'Annual Cultural Fest - Rhythm 2026', category: 'social', location: 'Open Grounds', date: new Date(Date.now() + 172800000).toISOString(), attendeeCount: 1200, isAttending: false, description: 'The biggest cultural night of the year with DJ night and food stalls.' },
+                { _id: 'e3', title: 'Tech Career Fair & Placements Talk', category: 'academic', location: 'Seminar Hall B', date: new Date(Date.now() + 259200000).toISOString(), attendeeCount: 320, isAttending: false, description: 'Interact with recruiters from Google, Microsoft, and Amazon.' },
+                { _id: 'e4', title: 'Inter-Department Hackathon', category: 'workshop', location: 'Computer Lab 4', date: new Date(Date.now() + 345600000).toISOString(), attendeeCount: 150, isAttending: false, description: '48 hours of intense coding, caffeine, and building products.' }
+              ];
+            }
+            setEvents(fetchedEvents);
           }
         }
       } catch (error) {

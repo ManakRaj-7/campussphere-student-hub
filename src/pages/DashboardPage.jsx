@@ -37,6 +37,7 @@ const DashboardPage = () => {
   const [showComplaintsModal, setShowComplaintsModal] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCounter, setQrCounter] = useState(60);
+  const [qrStatus, setQrStatus] = useState('generating');
 
   // Load dashboard data
   useEffect(() => {
@@ -134,8 +135,14 @@ const DashboardPage = () => {
 
   const triggerQrAttendance = () => {
     setQrCounter(60);
+    setQrStatus('generating');
     setQrModalOpen(true);
     toast.success('QR Attendance session established! Scan with your app.');
+    setTimeout(() => {
+      setQrStatus('scanned');
+      toast.success('✅ Scanner Recognized! Attendance Registered');
+      setXp((prev) => Math.min(prev + 50, xpNeededForNextLevel));
+    }, 4500);
   };
 
   const generateBriefing = async () => {
@@ -696,27 +703,41 @@ const DashboardPage = () => {
               Show this QR code to the classroom scanner or scan the board. Generates temporary authentication token.
             </p>
             
-            {/* Visual simulation of QR Code */}
-            <div className="w-48 h-48 bg-slate-100 dark:bg-slate-900 rounded-2xl p-4 flex items-center justify-center border-4 border-indigo-500/20 relative">
-              <div className="w-full h-full bg-slate-950 dark:bg-white rounded-lg flex flex-wrap p-3 gap-0.5 opacity-85">
-                {Array.from({ length: 196 }).map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`w-2.5 h-2.5 rounded-sm ${
-                      (i % 3 === 0 || i % 7 === 0 || i < 20 || i > 175) 
-                        ? 'bg-white dark:bg-slate-950' 
-                        : 'bg-transparent'
-                    }`} 
-                  />
-                ))}
-              </div>
-              <div className="absolute inset-0 bg-indigo-500/10 animate-pulse rounded-2xl pointer-events-none" />
-            </div>
+            {qrStatus === 'generating' ? (
+              <>
+                {/* Visual simulation of QR Code */}
+                <div className="w-48 h-48 bg-slate-100 dark:bg-slate-900 rounded-2xl p-4 flex items-center justify-center border-4 border-indigo-500/20 relative">
+                  <div className="w-full h-full bg-slate-950 dark:bg-white rounded-lg grid grid-cols-14 gap-[2px] p-2 overflow-hidden opacity-85">
+                    {Array.from({ length: 196 }).map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={`aspect-square rounded-sm ${
+                          (i % 3 === 0 || i % 7 === 0 || i < 20 || i > 175) 
+                            ? 'bg-white dark:bg-slate-950' 
+                            : 'bg-transparent'
+                        }`} 
+                      />
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 bg-indigo-500/10 animate-pulse rounded-2xl pointer-events-none" />
+                </div>
 
-            <div className="flex items-center gap-1.5 text-xs font-black text-rose-500">
-              <Icon name="alarm" className="text-sm font-extrabold" />
-              <span>Token expires in: {qrCounter}s</span>
-            </div>
+                <div className="flex items-center gap-1.5 text-xs font-black text-rose-500">
+                  <Icon name="alarm" className="text-sm font-extrabold" />
+                  <span>Token expires in: {qrCounter}s</span>
+                </div>
+              </>
+            ) : (
+              <div className="w-48 h-48 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 flex flex-col items-center justify-center border-4 border-emerald-500/30 relative space-y-3">
+                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 animate-bounce">
+                  <Icon name="check" fill={1} className="text-white text-3xl font-extrabold" />
+                </div>
+                <div className="text-center mt-2">
+                  <span className="block text-emerald-600 dark:text-emerald-400 font-black text-sm">Attendance</span>
+                  <span className="block text-slate-500 dark:text-slate-400 font-bold text-xs mt-1">Registered successfully!</span>
+                </div>
+              </div>
+            )}
 
             <button
               onClick={() => setQrModalOpen(false)}

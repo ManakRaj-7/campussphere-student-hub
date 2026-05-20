@@ -7,12 +7,11 @@ class OpenRouterModel {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.models = [
-      'deepseek/deepseek-chat:free',
-      'deepseek/deepseek-chat-v3-0324:free',
-      'meta-llama/llama-3.3-8b-instruct:free',
-      'qwen/qwen-2.5-coder-32b-instruct:free',
-      'google/gemma-3-27b-it:free',
-      'google/gemini-2.0-pro-exp-02-05:free'
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'qwen/qwen3-coder:free',
+      'deepseek/deepseek-r1:free',
+      'nvidia/llama-3.1-nemotron-nano-8b-v1:free',
+      'z-ai/glm-4.5-air:free'
     ];
   }
   
@@ -26,6 +25,8 @@ class OpenRouterModel {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
+            'HTTP-Referer': 'http://localhost:5173',
+            'X-Title': 'CampusSphere',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({

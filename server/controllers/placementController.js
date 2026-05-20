@@ -5,9 +5,6 @@ import { formatResponse, paginate } from '../utils/helpers.js';
 import { getPlacementPrep as getAIPlacementPrep } from '../services/aiService.js';
 import fs from 'fs';
 import mammoth from 'mammoth';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
 import { getModel } from '../config/gemini.js';
 
 /**
@@ -213,7 +210,9 @@ export const diagnoseResumeController = async (req, res, next) => {
 
       if (ext === 'pdf') {
         const dataBuffer = fs.readFileSync(tempFilePath);
-        const parsed = await pdf(dataBuffer);
+        const pdfModule = await import('pdf-parse');
+        const pdfParseFunc = pdfModule.default || (pdfModule.PDFParse ? pdfModule.PDFParse : pdfModule);
+        const parsed = typeof pdfParseFunc === 'function' ? await pdfParseFunc(dataBuffer) : await pdfModule.default(dataBuffer);
         resumeContent = parsed.text;
       } else if (ext === 'docx' || ext === 'doc') {
         const parsed = await mammoth.extractRawText({ path: tempFilePath });

@@ -79,3 +79,20 @@ export const uploadAvatar = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Get all registered users except current user
+ * GET /api/users
+ */
+export const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } })
+      .select('name email avatar role department year bio streak joinedClubs')
+      .populate('joinedClubs', 'name icon color');
+
+    res.status(200).json(formatResponse({ users }, 'All users retrieved successfully.'));
+  } catch (error) {
+    next(error);
+  }
+};
+

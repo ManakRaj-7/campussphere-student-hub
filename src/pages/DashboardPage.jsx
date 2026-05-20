@@ -231,7 +231,7 @@ const DashboardPage = () => {
             </div>
           </div>
           <div className="flex gap-1.5">
-            {['dp_ninja', 'verified', 'school'].map((badge, idx) => (
+            {['workspace_premium', 'verified', 'school'].map((badge, idx) => (
               <div 
                 key={badge} 
                 className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors shadow-sm"

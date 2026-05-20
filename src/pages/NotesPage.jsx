@@ -156,7 +156,7 @@ const NotesPage = () => {
     try {
       setUploading(true);
       const formData = new FormData();
-      formData.append('file', uploadFile);
+      formData.append('lectureFile', uploadFile);
       formData.append('title', uploadTitle);
       formData.append('course', uploadCourse);
 
@@ -452,7 +452,7 @@ const NotesPage = () => {
               <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Lecture File</label>
               <input
                 type="file"
-                accept=".pdf,.mp3,.wav,.txt"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.txt,.mp3,.wav"
                 onChange={(e) => setUploadFile(e.target.files[0])}
                 className="w-full text-xs text-slate-500 dark:text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-100 dark:file:bg-slate-900 file:text-indigo-600 hover:file:bg-slate-200 dark:hover:file:bg-slate-900/60"
                 required
@@ -558,9 +558,18 @@ const NotesPage = () => {
             {/* Note Detail Panel */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm space-y-4">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${selectedNote.course?.color}15`, color: selectedNote.course?.color }}>
-                  {selectedNote.course?.code} &bull; {selectedNote.course?.title}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSelectedNote(null)}
+                    className="text-slate-400 hover:text-indigo-650 flex items-center justify-center p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg mr-1"
+                    title="Back to Notes Grid"
+                  >
+                    <Icon name="arrow_back" className="text-lg" />
+                  </button>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${selectedNote.course?.color}15`, color: selectedNote.course?.color }}>
+                    {selectedNote.course?.code} &bull; {selectedNote.course?.title}
+                  </span>
+                </div>
                 <div className="flex items-center gap-3">
                   <button onClick={() => openEditNote(selectedNote)} className="text-slate-400 hover:text-indigo-650 flex items-center justify-center p-1.5 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-lg">
                     <Icon name="edit" className="text-lg" />
@@ -588,6 +597,61 @@ const NotesPage = () => {
               <div className="text-slate-700 dark:text-slate-200 text-sm leading-relaxed whitespace-pre-line font-medium bg-slate-50/50 dark:bg-slate-900/30 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
                 {selectedNote.content}
               </div>
+
+              {/* Attachments & Files Panel */}
+              {selectedNote.attachments && selectedNote.attachments.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-450 uppercase tracking-widest block">Attachments & Files</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {selectedNote.attachments.map((filePath, idx) => {
+                      const fileName = filePath.split('/').pop();
+                      const fileExt = fileName.split('.').pop().toLowerCase();
+                      const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(fileExt);
+                      return (
+                        <div key={idx} className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl space-y-3">
+                          <div className="flex items-center justify-between min-w-0">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 flex-shrink-0">
+                                <Icon name={isImage ? "image" : "description"} className="text-xl" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-slate-750 dark:text-slate-200 truncate" title={fileName}>{fileName}</p>
+                                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{fileExt} Document</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <a
+                                href={filePath}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 rounded-xl transition-all border border-slate-100 dark:border-slate-800"
+                                title="View File"
+                              >
+                                <Icon name="visibility" className="text-sm" />
+                              </a>
+                              <a
+                                href={filePath}
+                                download
+                                className="p-1.5 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl transition-all flex items-center justify-center"
+                                title="Download File"
+                              >
+                                <Icon name="download" className="text-sm" />
+                              </a>
+                            </div>
+                          </div>
+                          
+                          {/* Image preview */}
+                          {isImage && (
+                            <div className="relative rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 max-h-40 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
+                              <img src={filePath} alt="Attachment Preview" className="max-h-40 w-full object-cover hover:scale-105 transition-all duration-300" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* AI summary block if exists */}
               {selectedNote.aiSummary && (

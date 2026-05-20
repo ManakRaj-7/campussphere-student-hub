@@ -74,10 +74,10 @@ const fileFilter = (req, file, cb) => {
   }
 
   if (file.fieldname === 'resume') {
-    if (/pdf|doc|docx/.test(ext)) {
+    if (/pdf|doc|docx|tex|txt|md/.test(ext)) {
       return cb(null, true);
     }
-    return cb(ApiError.badRequest('Only PDF and Word documents are allowed for resumes.'));
+    return cb(ApiError.badRequest('Only PDF, Word, LaTeX (.tex), text (.txt), and Markdown (.md) documents are allowed for resumes.'));
   }
 
   cb(null, true);

@@ -5,68 +5,7 @@ import Icon from '../components/common/Icon';
 import Loader from '../components/common/Loader';
 import toast from 'react-hot-toast';
 
-const defaultDsaTopics = [
-  {
-    id: 'arrays',
-    title: 'Arrays & Hashing',
-    icon: 'grid_view',
-    color: 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
-    problems: [
-      { id: 'arr1', name: 'Two Sum', difficulty: 'Easy', link: 'https://leetcode.com/problems/two-sum/' },
-      { id: 'arr2', name: 'Contains Duplicate', difficulty: 'Easy', link: 'https://leetcode.com/problems/contains-duplicate/' },
-      { id: 'arr3', name: 'Valid Anagram', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-anagram/' },
-      { id: 'arr4', name: 'Top K Frequent Elements', difficulty: 'Medium', link: 'https://leetcode.com/problems/top-k-frequent-elements/' }
-    ]
-  },
-  {
-    id: 'pointers',
-    title: 'Two Pointers & Sliding Window',
-    icon: 'swap_horiz',
-    color: 'text-blue-500 bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30',
-    problems: [
-      { id: 'ptr1', name: 'Valid Palindrome', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-palindrome/' },
-      { id: 'ptr2', name: 'Container With Most Water', difficulty: 'Medium', link: 'https://leetcode.com/problems/container-with-most-water/' },
-      { id: 'ptr3', name: 'Best Time to Buy/Sell Stock', difficulty: 'Easy', link: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/' },
-      { id: 'ptr4', name: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', link: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/' }
-    ]
-  },
-  {
-    id: 'structures',
-    title: 'Stacks, Queues & Linked Lists',
-    icon: 'splitscreen',
-    color: 'text-purple-500 bg-purple-50/50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/30',
-    problems: [
-      { id: 'struct1', name: 'Valid Parentheses', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-parentheses/' },
-      { id: 'struct2', name: 'Reverse Linked List', difficulty: 'Easy', link: 'https://leetcode.com/problems/reverse-linked-list/' },
-      { id: 'struct3', name: 'Merge Two Sorted Lists', difficulty: 'Easy', link: 'https://leetcode.com/problems/merge-two-sorted-lists/' },
-      { id: 'struct4', name: 'Linked List Cycle', difficulty: 'Easy', link: 'https://leetcode.com/problems/linked-list-cycle/' }
-    ]
-  },
-  {
-    id: 'trees',
-    title: 'Trees & Graphs',
-    icon: 'account_tree',
-    color: 'text-amber-500 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30',
-    problems: [
-      { id: 'tree1', name: 'Invert Binary Tree', difficulty: 'Easy', link: 'https://leetcode.com/problems/invert-binary-tree/' },
-      { id: 'tree2', name: 'Maximum Depth of Binary Tree', difficulty: 'Easy', link: 'https://leetcode.com/problems/maximum-depth-of-binary-tree/' },
-      { id: 'tree3', name: 'Binary Tree Level Order Traversal', difficulty: 'Medium', link: 'https://leetcode.com/problems/binary-tree-level-order-traversal/' },
-      { id: 'tree4', name: 'Course Schedule', difficulty: 'Medium', link: 'https://leetcode.com/problems/course-schedule/' }
-    ]
-  },
-  {
-    id: 'dp',
-    title: 'Dynamic Programming',
-    icon: 'layers',
-    color: 'text-rose-500 bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30',
-    problems: [
-      { id: 'dp1', name: 'Climbing Stairs', difficulty: 'Easy', link: 'https://leetcode.com/problems/climbing-stairs/' },
-      { id: 'dp2', name: 'Coin Change', difficulty: 'Medium', link: 'https://leetcode.com/problems/coin-change/' },
-      { id: 'dp3', name: 'Longest Common Subsequence', difficulty: 'Medium', link: 'https://leetcode.com/problems/longest-common-subsequence/' },
-      { id: 'dp4', name: 'House Robber', difficulty: 'Medium', link: 'https://leetcode.com/problems/house-robber/' }
-    ]
-  }
-];
+import { defaultDsaTopics } from '../services/dsaQuestions';
 
 const PlacementsPage = () => {
   const { user } = useAuth();
@@ -94,6 +33,8 @@ const PlacementsPage = () => {
 
   // Resume Scorer State
   const [resumeText, setResumeText] = useState('');
+  const [resumeMode, setResumeMode] = useState('file'); // 'file', 'text'
+  const [diagnosticFile, setDiagnosticFile] = useState(null);
   const [diagnosis, setDiagnosis] = useState(null);
   const [loadingDiagnosis, setLoadingDiagnosis] = useState(false);
 
@@ -208,52 +149,39 @@ const PlacementsPage = () => {
   // Resume Diagnoser
   const handleDiagnoseResume = async (e) => {
     e.preventDefault();
-    if (!resumeText.trim()) {
+
+    if (resumeMode === 'text' && !resumeText.trim()) {
       toast.error('Please paste your resume details.');
+      return;
+    }
+    if (resumeMode === 'file' && !diagnosticFile) {
+      toast.error('Please upload or select a resume file.');
       return;
     }
 
     try {
       setLoadingDiagnosis(true);
-      const prompt = `Act as an expert technical recruiter. Analyze the following resume details and provide a comprehensive and detailed critique. 
-      Return your response ONLY as a JSON object matching this exact schema structure:
-      {
-        "score": 82,
-        "metrics": {
-          "typos": "Excellent - Grammatically correct and completely free of spell errors.",
-          "formatting": "Good - Structure is readable but sections can be visually separated better.",
-          "actionVerbs": "Fair - Power verbs can be enhanced. Replace standard verbs like 'made' or 'worked' with action verbs.",
-          "impactMetrics": "Poor - Needs quantitative proof. Focus on concrete results instead of duties."
-        },
-        "suggestions": [
-          "Quantify your accomplishments. For example: 'Reduced database queries response time by 35% through indexing'.",
-          "Ensure your professional summary highlights your key expertise and primary developer stack directly.",
-          "Move skills section to the top to enhance ATS scan visibility."
-        ]
+      let response;
+
+      if (resumeMode === 'file') {
+        const formData = new FormData();
+        formData.append('resume', diagnosticFile);
+        response = await api.post('/placements/diagnose-resume', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.post('/placements/diagnose-resume', {
+          resumeText: resumeText,
+        });
       }
 
-      Resume content:
-      ${resumeText}`;
-
-      const response = await api.post('/ai/chat', {
-        messages: [{ role: 'user', content: prompt }],
-        context: 'placement'
-      });
-
       if (response.data.success) {
-        const text = response.data.data.response;
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          setDiagnosis(parsed);
-          toast.success('Resume Diagnostics Completed!');
-        } else {
-          throw new Error('Invalid AI response formatting.');
-        }
+        setDiagnosis(response.data.data);
+        toast.success('Resume Diagnostics Completed!');
       }
     } catch (error) {
       console.error('Resume diagnostic error:', error);
-      toast.error('Resume diagnostic failed. Please try again.');
+      toast.error(error.response?.data?.message || 'Resume diagnostic failed. Please try again.');
     } finally {
       setLoadingDiagnosis(false);
     }
@@ -732,19 +660,88 @@ const PlacementsPage = () => {
                 <Icon name="analytics" className="text-indigo-500" /> ATS Resume Diagnoser
               </h3>
               <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 mt-1 leading-relaxed">
-                Paste your complete text-based resume (skills, history, achievements) to calculate a compatibility rating and reveal direct recruitment enhancements.
+                Upload your resume document or paste its plain text to calculate a compatibility rating and reveal direct recruitment enhancements.
               </p>
             </div>
 
+            {/* Mode Toggle */}
+            <div className="flex gap-1.5 p-1 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setResumeMode('file')}
+                className={`flex-1 py-1.8 text-xs font-black rounded-xl transition-all ${
+                  resumeMode === 'file'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-450 dark:hover:text-slate-350'
+                }`}
+              >
+                File Upload
+              </button>
+              <button
+                type="button"
+                onClick={() => setResumeMode('text')}
+                className={`flex-1 py-1.8 text-xs font-black rounded-xl transition-all ${
+                  resumeMode === 'text'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700 dark:text-slate-450 dark:hover:text-slate-350'
+                }`}
+              >
+                Paste Text
+              </button>
+            </div>
+
             <form onSubmit={handleDiagnoseResume} className="space-y-4">
-              <textarea
-                rows={12}
-                required
-                placeholder="Paste complete plain text details of your resume here..."
-                value={resumeText}
-                onChange={(e) => setResumeText(e.target.value)}
-                className="w-full p-3.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none dark:text-white font-medium resize-none leading-relaxed"
-              />
+              {resumeMode === 'file' ? (
+                <div className="space-y-3">
+                  {!diagnosticFile ? (
+                    <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-slate-200 dark:border-slate-700/80 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl cursor-pointer bg-slate-50/50 dark:bg-slate-900/30 transition-all group">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
+                        <Icon name="cloud_upload" className="text-slate-450 group-hover:text-indigo-500 text-3xl mb-2 transition-colors" />
+                        <p className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Drag & Drop Resume File</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 max-w-[200px]">Supports PDF, Word, LaTeX (.tex), Text, or Markdown</p>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.tex,.txt,.md"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setDiagnosticFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </label>
+                  ) : (
+                    <div className="p-4 bg-indigo-50/10 dark:bg-indigo-950/15 border border-indigo-100/50 dark:border-indigo-950/30 rounded-2xl flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 flex-shrink-0">
+                          <Icon name="description" className="text-xl" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{diagnosticFile.name}</p>
+                          <p className="text-[9px] font-semibold text-slate-400">{(diagnosticFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setDiagnosticFile(null)}
+                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-rose-500 dark:hover:text-rose-450 rounded-xl transition-all"
+                      >
+                        <Icon name="close" className="text-sm" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <textarea
+                  rows={12}
+                  required
+                  placeholder="Paste complete plain text details of your resume here..."
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  className="w-full p-3.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none dark:text-white font-medium resize-none leading-relaxed"
+                />
+              )}
 
               <button
                 type="submit"

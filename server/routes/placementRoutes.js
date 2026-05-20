@@ -6,6 +6,7 @@ import {
   applyToJob,
   getMyApplications,
   getPlacementPrepController,
+  diagnoseResumeController,
 } from '../controllers/placementController.js';
 import auth, { authorize } from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
@@ -19,5 +20,6 @@ router.post('/jobs/:id/apply', auth, upload.single('resume'), applyToJob);
 router.get('/applications', auth, getMyApplications);
 router.post('/prep', auth, getPlacementPrepController);
 router.get('/prep', auth, getPlacementPrepController); // Support GET for placement prep too
+router.post('/diagnose-resume', auth, upload.single('resume'), diagnoseResumeController);
 
 export default router;

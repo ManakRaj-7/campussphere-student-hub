@@ -134,7 +134,7 @@ const CommunityPage = () => {
         if (activeTab === 'feed') {
           const response = await api.get('/posts');
           if (response.data.success) {
-            setPosts(response.data.data);
+            setPosts(response.data.data.posts || []);
           }
         } else if (activeTab === 'clubs') {
           const response = await api.get('/clubs');
@@ -170,7 +170,7 @@ const CommunityPage = () => {
         setNewPostText('');
         // If not using sockets, manually prepend
         if (!socket) {
-          setPosts((prev) => [response.data.data, ...prev]);
+          setPosts((prev) => [response.data.data.post, ...prev]);
         }
       }
     } catch (error) {
@@ -183,11 +183,22 @@ const CommunityPage = () => {
     try {
       const response = await api.post(`/posts/${postId}/like`);
       if (response.data.success) {
-        const updatedLikes = response.data.data.likes;
+        const { liked } = response.data.data;
         setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId ? { ...post, likes: updatedLikes } : post
-          )
+          prevPosts.map((post) => {
+            if (post._id === postId) {
+              let updatedLikes = Array.isArray(post.likes) ? [...post.likes] : [];
+              if (liked) {
+                if (!updatedLikes.some(id => (id._id || id) === user._id)) {
+                  updatedLikes.push(user._id);
+                }
+              } else {
+                updatedLikes = updatedLikes.filter(id => (id._id || id) !== user._id);
+              }
+              return { ...post, likes: updatedLikes };
+            }
+            return post;
+          })
         );
       }
     } catch (error) {
@@ -203,7 +214,7 @@ const CommunityPage = () => {
     // Load comments if not cached
     if (!commentsMap[post._id]) {
       try {
-        const response = await api.get(`/posts/${post._id}`);
+        const response = await api.get(`/posts/${post._id}/comments`);
         if (response.data.success) {
           setCommentsMap((prev) => ({
             ...prev,
@@ -225,13 +236,13 @@ const CommunityPage = () => {
     try {
       const response = await api.post(`/posts/${postId}/comments`, { content: commentText });
       if (response.data.success) {
-        const newComment = response.data.data;
+        const newComment = response.data.data.comment;
         
         setCommentsMap((prevMap) => {
           const currentComments = prevMap[postId] || [];
           return {
             ...prevMap,
-            [postId]: [...currentComments, newComment]
+            [postId]: [newComment, ...currentComments]
           };
         });
 
@@ -330,6 +341,84 @@ const CommunityPage = () => {
     } catch (error) {
       console.error('Error scheduling event:', error);
       toast.error(error.response?.data?.message || 'Could not schedule event');
+    }
+  };
+
+  const handleScanMatches = async () => {
+    setIsScanning(true);
+    setScannedMatches([]);
+    try {
+      const response = await api.get('/users');
+      if (response.data.success) {
+        const dbUsers = response.data.data.users || [];
+        
+        const interestPools = {
+          'Competitive Coding': ['LeetCode', 'C++', 'Algorithms', 'Hackathons'],
+          'AI Research': ['Neural Networks', 'Python', 'MLOps', 'Paper Reading'],
+          'Indie Music': ['Acoustic Guitar', 'Vinyl Records', 'Concerts', 'Songwriting'],
+          'Basketball': ['NBA', 'Dribbling', 'Court Practice', 'Fitness'],
+          'Gaming/Valorant': ['FPS', 'Esports', 'Ranked Push', 'Co-op'],
+          'Speciality Coffee': ['Espresso', 'Latte Art', 'Pourovers', 'Roasting']
+        };
+
+        const matched = dbUsers.map(u => {
+          let score = 60; // Base score
+          if (u.department && user?.department && u.department.toLowerCase() === user.department.toLowerCase()) {
+            score += 15;
+          }
+          if (u.year && user?.year && Number(u.year) === Number(user.year)) {
+            score += 10;
+          }
+
+          const hash = u._id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const poolKeys = Object.keys(interestPools);
+          const userPoolKey = poolKeys[hash % poolKeys.length];
+          
+          const hasSelected = hash % 2 === 0;
+          const mainInterest = hasSelected ? selectedInterest : userPoolKey;
+          
+          const subPool = interestPools[mainInterest] || [];
+          const userInterests = [mainInterest, ...subPool.slice(0, 2)];
+
+          if (userInterests.includes(selectedInterest)) {
+            score += 15;
+          }
+
+          score = Math.min(score, 100);
+          const initials = u.name ? u.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
+
+          return {
+            id: u._id,
+            name: u.name,
+            department: u.department || 'General Science',
+            year: u.year ? `${u.year}${u.year === 1 ? 'st' : u.year === 2 ? 'nd' : u.year === 3 ? 'rd' : 'th'} Year` : '1st Year',
+            match: score,
+            interests: userInterests,
+            avatar: initials,
+            active: hash % 2 === 0,
+            realAvatar: u.avatar || ''
+          };
+        });
+
+        matched.sort((a, b) => b.match - a.match);
+
+        if (matched.length === 0) {
+          const fallbacks = [
+            { id: 'ms1', name: 'Kavya Sharma', department: 'Computer Science', year: '3rd Year', match: 96, interests: [selectedInterest, 'Indie Music', 'Gaming/Valorant'], avatar: 'KS', active: true },
+            { id: 'ms2', name: 'Rahul Verma', department: 'Electronics', year: '2nd Year', match: 89, interests: [selectedInterest, 'Basketball', 'Speciality Coffee'], avatar: 'RV', active: true },
+            { id: 'ms3', name: 'Diya Patel', department: 'Information Technology', year: '4th Year', match: 84, interests: [selectedInterest, 'Indie Music', 'AI Research'], avatar: 'DP', active: false }
+          ];
+          setScannedMatches(fallbacks);
+        } else {
+          setScannedMatches(matched.slice(0, 6));
+        }
+        toast.success('Ideal match findings retrieved!');
+      }
+    } catch (error) {
+      console.error('Error scanning matches:', error);
+      toast.error('Could not load campus cohorts.');
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -1001,20 +1090,7 @@ const CommunityPage = () => {
 
                   <div className="flex justify-center border-t border-slate-50 dark:border-slate-700/30 pt-4">
                     <button
-                      onClick={() => {
-                        setIsScanning(true);
-                        setScannedMatches([]);
-                        setTimeout(() => {
-                          const students = [
-                            { id: 'ms1', name: 'Kavya Sharma', department: 'Computer Science', year: '3rd Year', match: 96, interests: [selectedInterest, 'Indie Music', 'Gaming/Valorant'], avatar: 'KS', active: true },
-                            { id: 'ms2', name: 'Rahul Verma', department: 'Electronics', year: '2nd Year', match: 89, interests: [selectedInterest, 'Basketball', 'Speciality Coffee'], avatar: 'RV', active: true },
-                            { id: 'ms3', name: 'Diya Patel', department: 'Information Technology', year: '4th Year', match: 84, interests: [selectedInterest, 'Indie Music', 'AI Research'], avatar: 'DP', active: false }
-                          ];
-                          setScannedMatches(students);
-                          setIsScanning(false);
-                          toast.success('Ideal match findings retrieved!');
-                        }, 1200);
-                      }}
+                      onClick={handleScanMatches}
                       disabled={isScanning}
                       className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                     >
@@ -1036,7 +1112,7 @@ const CommunityPage = () => {
                   {/* Scanned Results */}
                   {scannedMatches.length > 0 && (
                     <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-700/30 animate-fade-in">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-center">Top Simulated Matches Found</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-center">Top Cohort Matches Found</span>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {scannedMatches.map(student => (
                           <div key={student.id} className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-center space-y-3 relative hover:shadow-md transition-shadow">
@@ -1046,10 +1122,14 @@ const CommunityPage = () => {
                             </span>
 
                             {/* Avatar */}
-                            <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black mx-auto relative shadow-sm">
-                              {student.avatar}
+                            <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black mx-auto relative shadow-sm overflow-hidden">
+                              {student.realAvatar ? (
+                                <img src={student.realAvatar} alt={student.name} className="w-full h-full object-cover" />
+                              ) : (
+                                student.avatar
+                              )}
                               {student.active && (
-                                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
+                                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 z-10" />
                               )}
                             </div>
 

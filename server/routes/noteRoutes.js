@@ -19,6 +19,6 @@ router.post('/', auth, createNote);
 router.put('/:id', auth, updateNote);
 router.delete('/:id', auth, deleteNote);
 router.post('/:id/summarize', auth, summarizeNote);
-router.post('/upload', auth, upload.single('file'), uploadLectureFile);
+router.post('/upload', auth, upload.single('lectureFile'), uploadLectureFile);
 
 export default router;

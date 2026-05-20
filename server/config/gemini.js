@@ -6,33 +6,59 @@ let model = null;
 class OpenRouterModel {
   constructor(apiKey) {
     this.apiKey = apiKey;
+    this.models = [
+      'deepseek/deepseek-chat:free',
+      'deepseek/deepseek-chat-v3-0324:free',
+      'meta-llama/llama-3.3-8b-instruct:free',
+      'qwen/qwen-2.5-coder-32b-instruct:free',
+      'google/gemma-3-27b-it:free',
+      'google/gemini-2.0-pro-exp-02-05:free'
+    ];
   }
   
   async generateContent(prompt) {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.0-pro-exp-02-05:free',
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    let lastError = null;
     
-    if (!response.ok) {
-        throw new Error(`OpenRouter Error: ${response.statusText}`);
+    for (const modelName of this.models) {
+      try {
+        console.log(`🤖 [OpenRouter] Attempting AI generation using model: ${modelName}`);
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Response Status ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        
+        if (!content) {
+          throw new Error('Empty model response received.');
+        }
+        
+        console.log(`✅ [OpenRouter] Successfully completed AI generation using model: ${modelName}`);
+        return {
+          response: {
+            text: () => content
+          }
+        };
+      } catch (error) {
+        console.warn(`⚠️ [OpenRouter] Model ${modelName} failed: ${error.message}. Trying next model...`);
+        lastError = error;
+      }
     }
     
-    const data = await response.json();
-    return {
-      response: {
-        text: () => {
-           return data.choices?.[0]?.message?.content || "";
-        }
-      }
-    };
+    console.error('❌ [OpenRouter] All models in the fallback queue failed.');
+    throw new Error(`OpenRouter Fallback Failure: All models failed. Last error: ${lastError?.message}`);
   }
 }
 

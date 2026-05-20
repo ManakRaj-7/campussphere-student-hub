@@ -3,6 +3,10 @@ import Application from '../models/Application.js';
 import ApiError from '../utils/ApiError.js';
 import { formatResponse, paginate } from '../utils/helpers.js';
 import { getPlacementPrep as getAIPlacementPrep } from '../services/aiService.js';
+import fs from 'fs';
+import pdf from 'pdf-parse';
+import mammoth from 'mammoth';
+import { getModel } from '../config/gemini.js';
 
 /**
  * Get all jobs
@@ -189,3 +193,97 @@ export const getPlacementPrepController = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Diagnose a resume (either pasted text or uploaded file: PDF, Word, LaTeX, txt, md)
+ * POST /api/placements/diagnose-resume
+ */
+export const diagnoseResumeController = async (req, res, next) => {
+  let tempFilePath = null;
+  try {
+    let resumeContent = '';
+
+    if (req.file) {
+      tempFilePath = req.file.path;
+      const ext = req.file.originalname.split('.').pop().toLowerCase();
+      
+      console.log(`📄 Parsing resume file of type: ${ext}`);
+
+      if (ext === 'pdf') {
+        const dataBuffer = fs.readFileSync(tempFilePath);
+        const parsed = await pdf(dataBuffer);
+        resumeContent = parsed.text;
+      } else if (ext === 'docx' || ext === 'doc') {
+        const parsed = await mammoth.extractRawText({ path: tempFilePath });
+        resumeContent = parsed.value;
+      } else if (ext === 'tex' || ext === 'txt' || ext === 'md') {
+        resumeContent = fs.readFileSync(tempFilePath, 'utf8');
+      } else {
+        throw ApiError.badRequest('Unsupported file type.');
+      }
+    } else if (req.body.resumeText) {
+      resumeContent = req.body.resumeText;
+    } else {
+      throw ApiError.badRequest('Please upload a resume file or paste your resume details.');
+    }
+
+    if (!resumeContent || !resumeContent.trim()) {
+      throw ApiError.badRequest('No readable text content found in resume.');
+    }
+
+    // Call OpenRouter / Gemini to critique the resume
+    const model = getModel();
+    if (!model) {
+      throw ApiError.internal('AI Service is currently unavailable.');
+    }
+
+    const prompt = `Act as an expert technical recruiter and ATS (Applicant Tracking System) parser. Analyze the following resume details and provide a comprehensive and detailed critique.
+    Return your response ONLY as a JSON object matching this exact schema structure:
+    {
+      "score": 82,
+      "metrics": {
+        "typos": "Excellent - Grammatically correct and completely free of spell errors.",
+        "formatting": "Good - Structure is readable but sections can be visually separated better.",
+        "actionVerbs": "Fair - Power verbs can be enhanced. Replace standard verbs like 'made' or 'worked' with action verbs.",
+        "impactMetrics": "Poor - Needs quantitative proof. Focus on concrete results instead of duties."
+      },
+      "suggestions": [
+        "Quantify your accomplishments. For example: 'Reduced database queries response time by 35% through indexing'.",
+        "Ensure your professional summary highlights your key expertise and primary developer stack directly.",
+        "Move skills section to the top to enhance ATS scan visibility."
+      ]
+    }
+
+    Resume content:
+    ${resumeContent}`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    
+    if (!jsonMatch) {
+      throw new Error('AI returned invalid response format.');
+    }
+
+    const parsedData = JSON.parse(jsonMatch[0]);
+
+    // Clean up temporary file
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      fs.unlinkSync(tempFilePath);
+      tempFilePath = null;
+    }
+
+    res.status(200).json(formatResponse(parsedData, 'Resume diagnostics completed successfully.'));
+  } catch (error) {
+    // Clean up temporary file in case of failure
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (e) {
+        console.error('Error deleting temp file on failure:', e);
+      }
+    }
+    next(error);
+  }
+};
+

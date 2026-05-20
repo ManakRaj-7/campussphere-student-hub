@@ -22,7 +22,8 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const response = await authGetMe();
-        setUser(response.data?.user || response.data);
+        const userData = response.data?.data?.user || response.data?.user || response.data;
+        setUser(userData);
         setToken(savedToken);
       } catch (error) {
         console.warn('Token validation failed:', error);
@@ -40,15 +41,20 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       const response = await authLogin({ email, password });
-      const { token: newToken, user: userData } = response.data;
+      const apiData = response.data?.data || response.data || {};
+      const { token: newToken, user: userData } = apiData;
       
+      if (!newToken || !userData) {
+        throw new Error('Invalid response structure from authentication server');
+      }
+
       localStorage.setItem('campussphere-token', newToken);
       setToken(newToken);
       setUser(userData);
       toast.success(`Welcome back, ${userData.name || 'User'}!`);
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed. Please try again.';
+      const message = error.response?.data?.message || error.message || 'Login failed. Please try again.';
       toast.error(message);
       return { success: false, message };
     }
@@ -57,7 +63,12 @@ export const AuthProvider = ({ children }) => {
   const register = useCallback(async (data) => {
     try {
       const response = await authRegister(data);
-      const { token: newToken, user: userData } = response.data;
+      const apiData = response.data?.data || response.data || {};
+      const { token: newToken, user: userData } = apiData;
+
+      if (!newToken || !userData) {
+        throw new Error('Invalid response structure from registration server');
+      }
       
       localStorage.setItem('campussphere-token', newToken);
       setToken(newToken);
@@ -65,7 +76,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('Account created successfully!');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed. Please try again.';
+      const message = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
       toast.error(message);
       return { success: false, message };
     }

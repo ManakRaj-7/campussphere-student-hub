@@ -99,8 +99,12 @@ const TopBar = () => {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{getUserInitials()}</span>
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white text-xs font-bold">{getUserInitials()}</span>
+                )}
               </div>
               <span className="hidden md:block text-sm font-medium text-slate-700 dark:text-slate-300 max-w-[100px] truncate">
                 {user?.name?.split(' ')[0] || 'User'}

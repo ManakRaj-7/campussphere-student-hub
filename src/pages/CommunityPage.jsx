@@ -11,7 +11,7 @@ const CommunityPage = () => {
   const { user } = useAuth();
   const { socket, isConnected } = useSocket();
 
-  // Navigation Tabs: 'feed', 'clubs', 'events'
+  // Navigation Tabs: 'feed', 'clubs', 'events', 'social'
   const [activeTab, setActiveTab] = useState('feed');
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +40,48 @@ const CommunityPage = () => {
     category: 'workshop', // workshop, sports, hackathon, social
     organizerType: 'user'
   });
+
+  // Hyper-Social Campus Layer State
+  const [socialTab, setSocialTab] = useState('confessions'); // confessions, memes, matches, free-now
+  
+  // Confessions state
+  const [confessions, setConfessions] = useState(() => {
+    const saved = localStorage.getItem('cs_confessions');
+    return saved ? JSON.parse(saved) : [
+      { id: 'c1', text: "I accidentally submitted my biology lab report as a movie review of Shrek. The prof gave me an A anyway.", color: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-700 dark:text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]', likes: 24, liked: false },
+      { id: 'c2', text: "I've been using the department printer to print my 400-page fantasy novel chapter by chapter since freshman year.", color: 'bg-pink-500/10 border-pink-500/30 text-pink-700 dark:text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.15)]', likes: 42, liked: false },
+      { id: 'c3', text: "Still trying to figure out if that cute guy in the computer lab is coding in Python or just playing Minecraft.", color: 'bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]', likes: 18, liked: false },
+      { id: 'c4', text: "To the person who took my almond milk from the hostel fridge: I hope your next React app enters an infinite loop.", color: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]', likes: 31, liked: false }
+    ];
+  });
+  const [newConfessionText, setNewConfessionText] = useState('');
+  const [confessionColor, setConfessionColor] = useState('cyan'); // cyan, pink, purple, amber
+
+  // Memes state
+  const [memes, setMemes] = useState([
+    { id: 'm1', title: 'Vite Speed', text: 'Vite hot reloading: ⚡ (0.01s)\n\nWebpack compiling: 💀 (45s)', upvotes: 142, skulls: 54, author: 'FrontendDev_26', voted: null },
+    { id: 'm2', title: 'Class Attendance', text: 'Prof: "Attendance is not mandatory." \n\nAlso Prof: "The final exam will be based exactly on my spoken words in class."', upvotes: 89, skulls: 12, author: 'CrammingKing', voted: null },
+    { id: 'm3', title: 'Infinite Loops', text: 'My brain at 3:00 AM trying to sleep:\n\nwhile(true) {\n  thinkAboutLife();\n}', upvotes: 213, skulls: 88, author: 'NoSleepCoder', voted: null }
+  ]);
+  const [newMemeTitle, setNewMemeTitle] = useState('');
+  const [newMemeText, setNewMemeText] = useState('');
+
+  // Interests matching state
+  const [selectedInterest, setSelectedInterest] = useState('Competitive Coding');
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannedMatches, setScannedMatches] = useState([]);
+  const [wavedStudents, setWavedStudents] = useState({}); // studentId -> true
+
+  // Free Now Navigator state
+  const [checkedInZone, setCheckedInZone] = useState(() => {
+    return localStorage.getItem('cs_checked_in_zone') || null;
+  });
+  const [campusZones, setCampusZones] = useState([
+    { id: 'lib', name: 'Central Library Quiet Zone', activeCount: 14, icon: 'menu_book' },
+    { id: 'cafe', name: 'Campus Cafe Lounge', activeCount: 22, icon: 'local_cafe' },
+    { id: 'hostel', name: 'Valkyrie Hall Common Room', activeCount: 8, icon: 'home' },
+    { id: 'lawn', name: 'Green Lawn Gazebos', activeCount: 5, icon: 'forest' }
+  ]);
 
   // Real-time updates via Socket.io
   useEffect(() => {
@@ -307,16 +349,17 @@ const CommunityPage = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-700/80 gap-6">
+      <div className="flex border-b border-slate-200 dark:border-slate-700/80 gap-6 overflow-x-auto no-scrollbar">
         {[
           { id: 'feed', label: 'Feed & Discussions', icon: 'chat_bubble' },
           { id: 'clubs', label: 'Student Clubs', icon: 'diversity_3' },
-          { id: 'events', label: 'Campus Events', icon: 'today' }
+          { id: 'events', label: 'Campus Events', icon: 'today' },
+          { id: 'social', label: 'Campus Social Space', icon: 'auto_awesome_motion' }
         ].map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 pb-3 text-sm font-bold border-b-2 transition-colors ${
+            className={`flex items-center gap-2 pb-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-400'
                 : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -631,6 +674,525 @@ const CommunityPage = () => {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* ============ TAB 4: CAMPUS SOCIAL SPACE ============ */}
+          {activeTab === 'social' && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Secondary Navigation Headers */}
+              <div className="flex bg-slate-100 dark:bg-slate-900/80 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-800 gap-1.5 self-start overflow-x-auto max-w-full no-scrollbar">
+                {[
+                  { id: 'confessions', label: 'Anonymous Confessions', icon: 'theater_comedy' },
+                  { id: 'memes', label: 'Memes Board', icon: 'mood' },
+                  { id: 'matches', label: 'Interests Matcher', icon: 'join_left' },
+                  { id: 'free-now', label: 'Who\'s Free Now?', icon: 'person_pin' }
+                ].map(subTab => (
+                  <button
+                    key={subTab.id}
+                    onClick={() => setSocialTab(subTab.id)}
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                      socialTab === subTab.id
+                        ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm border border-slate-200/20 dark:border-slate-700/50'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <Icon name={subTab.icon} className="text-sm" />
+                    {subTab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* ============ SUBTAB 1: ANONYMOUS CONFESSIONS ============ */}
+              {socialTab === 'confessions' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  {/* Write Confession Column */}
+                  <div className="lg:col-span-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-5 shadow-sm space-y-4">
+                    <div>
+                      <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
+                        <Icon name="theater_comedy" className="text-pink-500" /> Share Anonymously
+                      </h3>
+                      <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
+                        Got a hot take, a funny failure, or a secret campus crush? Spillage is welcome here. Completely untracked.
+                      </p>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!newConfessionText.trim()) return;
+
+                        const colors = {
+                          cyan: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-700 dark:text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.15)]',
+                          pink: 'bg-pink-500/10 border-pink-500/30 text-pink-700 dark:text-pink-300 shadow-[0_0_15px_rgba(236,72,153,0.15)]',
+                          purple: 'bg-purple-500/10 border-purple-500/30 text-purple-700 dark:text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]',
+                          amber: 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                        };
+
+                        const newConf = {
+                          id: 'c_' + Date.now(),
+                          text: newConfessionText,
+                          color: colors[confessionColor],
+                          likes: 0,
+                          liked: false
+                        };
+
+                        const updated = [newConf, ...confessions];
+                        setConfessions(updated);
+                        localStorage.setItem('cs_confessions', JSON.stringify(updated));
+                        setNewConfessionText('');
+                        toast.success('Confession shared anonymously! 🤫');
+                      }}
+                      className="space-y-4"
+                    >
+                      <textarea
+                        rows={5}
+                        required
+                        maxLength={250}
+                        placeholder="State your confession here..."
+                        value={newConfessionText}
+                        onChange={(e) => setNewConfessionText(e.target.value)}
+                        className="w-full p-3.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none dark:text-white font-medium resize-none leading-relaxed"
+                      />
+
+                      {/* Color selectors */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Neon Card Theme</label>
+                        <div className="flex gap-2.5 pt-1">
+                          {['cyan', 'pink', 'purple', 'amber'].map(color => (
+                            <button
+                              key={color}
+                              type="button"
+                              onClick={() => setConfessionColor(color)}
+                              className={`w-6 h-6 rounded-full border-2 transition-all ${
+                                color === 'cyan' ? 'bg-cyan-400 border-cyan-300' :
+                                color === 'pink' ? 'bg-pink-400 border-pink-300' :
+                                color === 'purple' ? 'bg-purple-400 border-purple-300' :
+                                'bg-amber-400 border-amber-300'
+                              } ${confessionColor === color ? 'scale-125 ring-2 ring-indigo-500/50' : 'opacity-80 hover:opacity-100'}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Icon name="send" className="text-sm" />
+                        Confess Anonymously
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Confessions list */}
+                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {confessions.map(c => (
+                      <div key={c.id} className={`p-5 rounded-3xl border flex flex-col justify-between space-y-4 hover:scale-[1.01] transition-transform ${c.color}`}>
+                        <p className="text-xs font-semibold leading-relaxed whitespace-pre-wrap">{c.text}</p>
+                        
+                        <div className="flex justify-between items-center border-t border-slate-500/10 pt-3">
+                          <span className="text-[9px] font-black tracking-widest uppercase opacity-60">🤫 ANONYMOUS</span>
+                          <button
+                            onClick={() => {
+                              const updated = confessions.map(item => {
+                                if (item.id === c.id) {
+                                  const isLiked = !item.liked;
+                                  return {
+                                    ...item,
+                                    liked: isLiked,
+                                    likes: isLiked ? item.likes + 1 : item.likes - 1
+                                  };
+                                }
+                                return item;
+                              });
+                              setConfessions(updated);
+                              localStorage.setItem('cs_confessions', JSON.stringify(updated));
+                            }}
+                            className={`flex items-center gap-1 text-[11px] font-bold transition-all active:scale-90 ${
+                              c.liked ? 'text-pink-500 scale-105' : 'opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <Icon name="favorite" fill={c.liked ? 1 : 0} className="text-sm" />
+                            {c.likes} Hearts
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ============ SUBTAB 2: MEMES BOARD ============ */}
+              {socialTab === 'memes' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  {/* Create Meme Card */}
+                  <div className="lg:col-span-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-5 shadow-sm space-y-4">
+                    <div>
+                      <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
+                        <Icon name="mood" className="text-yellow-500" /> Share Campus Meme
+                      </h3>
+                      <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
+                        Add to the student humor collective. Describe the funny reality of labs, exams, or campus food.
+                      </p>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!newMemeTitle.trim() || !newMemeText.trim()) return;
+
+                        const newMeme = {
+                          id: 'm_' + Date.now(),
+                          title: newMemeTitle,
+                          text: newMemeText,
+                          upvotes: 0,
+                          skulls: 0,
+                          author: user?.name?.split(' ')[0] || 'Scholar',
+                          voted: null
+                        };
+
+                        setMemes([newMeme, ...memes]);
+                        setNewMemeTitle('');
+                        setNewMemeText('');
+                        toast.success('Meme published to the board! 😂');
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Meme Title</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. 3-Hour Lab Session"
+                          value={newMemeTitle}
+                          onChange={(e) => setNewMemeTitle(e.target.value)}
+                          className="w-full p-2.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none dark:text-white font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Meme Text / Dialogue</label>
+                        <textarea
+                          rows={4}
+                          required
+                          placeholder="Use line breaks for dialogue: e.g.&#10;Professor: '...'&#10;Me: '...'"
+                          value={newMemeText}
+                          onChange={(e) => setNewMemeText(e.target.value)}
+                          className="w-full p-3.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none dark:text-white font-medium resize-none leading-relaxed"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Icon name="add" className="text-sm" />
+                        Publish Meme
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Memes List */}
+                  <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {memes.map(m => (
+                      <div key={m.id} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-5 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-all relative overflow-hidden">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 text-slate-400 dark:text-slate-500 px-2 py-0.5 rounded-lg">
+                              @{m.author}
+                            </span>
+                            <Icon name="sentiment_very_satisfied" className="text-amber-500 text-base" />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-sm text-slate-800 dark:text-white leading-snug">{m.title}</h4>
+                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 rounded-2xl text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap mt-2 font-mono">
+                              {m.text}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Vote Buttons */}
+                        <div className="flex gap-3 border-t border-slate-50 dark:border-slate-700/30 pt-3.5">
+                          <button
+                            onClick={() => {
+                              const updated = memes.map(item => {
+                                if (item.id === m.id) {
+                                  const alreadyUpvoted = item.voted === 'up';
+                                  return {
+                                    ...item,
+                                    voted: alreadyUpvoted ? null : 'up',
+                                    upvotes: alreadyUpvoted ? item.upvotes - 1 : item.upvotes + 1,
+                                    skulls: item.voted === 'skull' ? item.skulls - 1 : item.skulls
+                                  };
+                                }
+                                return item;
+                              });
+                              setMemes(updated);
+                            }}
+                            className={`flex items-center gap-1 text-[11px] font-black px-3 py-1.5 rounded-xl border transition-all active:scale-95 ${
+                              m.voted === 'up'
+                                ? 'bg-amber-50 border-amber-200 text-amber-600 dark:bg-amber-950/20 dark:border-amber-950/30 dark:text-amber-400'
+                                : 'bg-slate-50/50 border-slate-100 text-slate-500 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-400'
+                            }`}
+                          >
+                            🔥 {m.upvotes} Lit
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              const updated = memes.map(item => {
+                                if (item.id === m.id) {
+                                  const alreadySkulled = item.voted === 'skull';
+                                  return {
+                                    ...item,
+                                    voted: alreadySkulled ? null : 'skull',
+                                    skulls: alreadySkulled ? item.skulls - 1 : item.skulls + 1,
+                                    upvotes: item.voted === 'up' ? item.upvotes - 1 : item.upvotes
+                                  };
+                                }
+                                return item;
+                              });
+                              setMemes(updated);
+                            }}
+                            className={`flex items-center gap-1 text-[11px] font-black px-3 py-1.5 rounded-xl border transition-all active:scale-95 ${
+                              m.voted === 'skull'
+                                ? 'bg-purple-50 border-purple-200 text-purple-600 dark:bg-purple-950/20 dark:border-purple-950/30 dark:text-purple-400'
+                                : 'bg-slate-50/50 border-slate-100 text-slate-500 dark:bg-slate-900/40 dark:border-slate-800 dark:text-slate-400'
+                            }`}
+                          >
+                            💀 {m.skulls} Dead
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ============ SUBTAB 3: INTERESTS FRIEND MATCHER ============ */}
+              {socialTab === 'matches' && (
+                <div className="max-w-3xl mx-auto bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-6 shadow-sm space-y-6">
+                  <div className="text-center max-w-lg mx-auto space-y-1.5">
+                    <h3 className="font-black text-slate-800 dark:text-white text-base flex items-center justify-center gap-1.5">
+                      <Icon name="join_left" className="text-indigo-500" /> Interest Friend Finder
+                    </h3>
+                    <p className="text-xs font-semibold text-slate-400">
+                      Select your primary focus area to instantly search and locate other active students with overlapping profiles.
+                    </p>
+                  </div>
+
+                  {/* Focus Selection */}
+                  <div className="flex flex-wrap gap-2 justify-center py-2">
+                    {['Competitive Coding', 'AI Research', 'Indie Music', 'Basketball', 'Gaming/Valorant', 'Speciality Coffee'].map(interest => (
+                      <button
+                        key={interest}
+                        onClick={() => setSelectedInterest(interest)}
+                        className={`px-3.5 py-1.8 rounded-xl text-xs font-black border transition-all ${
+                          selectedInterest === interest
+                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 hover:bg-slate-100'
+                        }`}
+                      >
+                        {interest}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center border-t border-slate-50 dark:border-slate-700/30 pt-4">
+                    <button
+                      onClick={() => {
+                        setIsScanning(true);
+                        setScannedMatches([]);
+                        setTimeout(() => {
+                          const students = [
+                            { id: 'ms1', name: 'Kavya Sharma', department: 'Computer Science', year: '3rd Year', match: 96, interests: [selectedInterest, 'Indie Music', 'Gaming/Valorant'], avatar: 'KS', active: true },
+                            { id: 'ms2', name: 'Rahul Verma', department: 'Electronics', year: '2nd Year', match: 89, interests: [selectedInterest, 'Basketball', 'Speciality Coffee'], avatar: 'RV', active: true },
+                            { id: 'ms3', name: 'Diya Patel', department: 'Information Technology', year: '4th Year', match: 84, interests: [selectedInterest, 'Indie Music', 'AI Research'], avatar: 'DP', active: false }
+                          ];
+                          setScannedMatches(students);
+                          setIsScanning(false);
+                          toast.success('Ideal match findings retrieved!');
+                        }, 1200);
+                      }}
+                      disabled={isScanning}
+                      className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {isScanning ? <Loader size="sm" /> : <Icon name="search" className="text-sm" />}
+                      {isScanning ? 'Scanning Cohorts...' : 'Scan Active Cohorts'}
+                    </button>
+                  </div>
+
+                  {/* Scanning Animation */}
+                  {isScanning && (
+                    <div className="flex flex-col items-center justify-center py-8 gap-3 animate-pulse">
+                      <div className="w-16 h-16 rounded-full border-4 border-dashed border-indigo-500 animate-spin flex items-center justify-center">
+                        <Icon name="radar" className="text-indigo-500 text-xl" />
+                      </div>
+                      <span className="text-xs font-bold text-indigo-500">Querying live campus database...</span>
+                    </div>
+                  )}
+
+                  {/* Scanned Results */}
+                  {scannedMatches.length > 0 && (
+                    <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-700/30 animate-fade-in">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block text-center">Top Simulated Matches Found</span>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {scannedMatches.map(student => (
+                          <div key={student.id} className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl text-center space-y-3 relative hover:shadow-md transition-shadow">
+                            {/* Matching Score Badge */}
+                            <span className="absolute top-3 right-3 text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-950/30">
+                              {student.match}% Match
+                            </span>
+
+                            {/* Avatar */}
+                            <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black mx-auto relative shadow-sm">
+                              {student.avatar}
+                              {student.active && (
+                                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900" />
+                              )}
+                            </div>
+
+                            <div>
+                              <h4 className="font-extrabold text-xs text-slate-800 dark:text-white">{student.name}</h4>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">{student.department} &bull; {student.year}</p>
+                            </div>
+
+                            {/* Matching interests tags */}
+                            <div className="flex flex-wrap gap-1 justify-center">
+                              {student.interests.map(tag => (
+                                <span key={tag} className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/30 text-indigo-500 dark:text-indigo-400">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                setWavedStudents({ ...wavedStudents, [student.id]: true });
+                                toast.success(`Simulated ping sent to ${student.name}!`);
+                              }}
+                              disabled={wavedStudents[student.id]}
+                              className={`w-full py-1.8 text-[10px] font-black rounded-xl transition-all flex items-center justify-center gap-1 border ${
+                                wavedStudents[student.id]
+                                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:border-slate-700'
+                                  : 'bg-indigo-600 border-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
+                              }`}
+                            >
+                              <Icon name={wavedStudents[student.id] ? 'check_circle' : 'waving_hand'} className="text-xs" />
+                              {wavedStudents[student.id] ? 'Ping Sent!' : 'Ping on Chat'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ============ SUBTAB 4: WHO'S FREE NOW NAVIGATOR ============ */}
+              {socialTab === 'free-now' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  {/* Info Panel & Interactive Simulator */}
+                  <div className="lg:col-span-1 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-5 shadow-sm space-y-4">
+                    <div>
+                      <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
+                        <Icon name="person_pin" className="text-emerald-500 animate-bounce" /> "Who's Free Now?" Navigator
+                      </h3>
+                      <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
+                        Broadcast your location or check where student groups are currently studying in real-time. Boost peer motivation.
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl space-y-3.5">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Your Broadcast Status</span>
+                      {checkedInZone ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-xs font-extrabold text-slate-700 dark:text-slate-200">
+                            <Icon name="check_circle" className="text-emerald-500" />
+                            <span>Checked in at:</span>
+                          </div>
+                          <span className="text-xs font-black block p-2.5 rounded-xl border border-emerald-100/50 bg-emerald-50/20 text-emerald-600 dark:border-emerald-950/20 dark:text-emerald-400 leading-snug">
+                            {campusZones.find(z => z.id === checkedInZone)?.name}
+                          </span>
+                          <button
+                            onClick={() => {
+                              const zoneId = checkedInZone;
+                              setCheckedInZone(null);
+                              localStorage.removeItem('cs_checked_in_zone');
+                              setCampusZones(campusZones.map(z => z.id === zoneId ? { ...z, activeCount: z.activeCount - 1 } : z));
+                              toast.success('Checked out from study spot.');
+                            }}
+                            className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/15 dark:text-rose-400 dark:hover:bg-rose-950/30 text-[10px] font-black rounded-xl transition-all flex items-center justify-center gap-1 border border-rose-100 dark:border-rose-950/20"
+                          >
+                            <Icon name="logout" className="text-xs" /> Check Out
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center py-2 space-y-2">
+                          <p className="text-xs text-slate-500 font-semibold leading-relaxed">You are not checked in to any campus zone. Select a zone on the right to broadcast.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Active Zones Grid */}
+                  <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {campusZones.map(zone => {
+                      const isCurrent = checkedInZone === zone.id;
+                      return (
+                        <div key={zone.id} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-3xl p-5 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow relative">
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${
+                            isCurrent
+                              ? 'bg-emerald-50 border-emerald-100 text-emerald-500 dark:bg-emerald-950/20 dark:border-emerald-900/30'
+                              : 'bg-indigo-50 border-indigo-100 text-indigo-500 dark:bg-indigo-950/20 dark:border-indigo-900/30'
+                          }`}>
+                            <Icon name={zone.icon} className="text-lg" />
+                          </div>
+
+                          <div className="flex-1 space-y-2">
+                            <div>
+                              <h4 className="font-extrabold text-xs text-slate-800 dark:text-white leading-snug">{zone.name}</h4>
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                {zone.activeCount} active students
+                              </span>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                if (isCurrent) {
+                                  setCheckedInZone(null);
+                                  localStorage.removeItem('cs_checked_in_zone');
+                                  setCampusZones(campusZones.map(z => z.id === zone.id ? { ...z, activeCount: z.activeCount - 1 } : z));
+                                  toast.success('Checked out.');
+                                } else {
+                                  let prevZone = checkedInZone;
+                                  setCheckedInZone(zone.id);
+                                  localStorage.setItem('cs_checked_in_zone', zone.id);
+                                  setCampusZones(campusZones.map(z => {
+                                    if (z.id === zone.id) return { ...z, activeCount: z.activeCount + 1 };
+                                    if (z.id === prevZone) return { ...z, activeCount: z.activeCount - 1 };
+                                    return z;
+                                  }));
+                                  toast.success(`Checked-In at ${zone.name}!`);
+                                }
+                              }}
+                              className={`px-4 py-1.8 text-[10px] font-black rounded-xl transition-all border ${
+                                isCurrent
+                                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                  : 'bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 hover:bg-slate-100'
+                              }`}
+                            >
+                              {isCurrent ? 'Checked In' : 'Check In Here'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

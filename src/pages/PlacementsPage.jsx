@@ -5,12 +5,75 @@ import Icon from '../components/common/Icon';
 import Loader from '../components/common/Loader';
 import toast from 'react-hot-toast';
 
+const defaultDsaTopics = [
+  {
+    id: 'arrays',
+    title: 'Arrays & Hashing',
+    icon: 'grid_view',
+    color: 'text-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
+    problems: [
+      { id: 'arr1', name: 'Two Sum', difficulty: 'Easy', link: 'https://leetcode.com/problems/two-sum/' },
+      { id: 'arr2', name: 'Contains Duplicate', difficulty: 'Easy', link: 'https://leetcode.com/problems/contains-duplicate/' },
+      { id: 'arr3', name: 'Valid Anagram', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-anagram/' },
+      { id: 'arr4', name: 'Top K Frequent Elements', difficulty: 'Medium', link: 'https://leetcode.com/problems/top-k-frequent-elements/' }
+    ]
+  },
+  {
+    id: 'pointers',
+    title: 'Two Pointers & Sliding Window',
+    icon: 'swap_horiz',
+    color: 'text-blue-500 bg-blue-50/50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/30',
+    problems: [
+      { id: 'ptr1', name: 'Valid Palindrome', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-palindrome/' },
+      { id: 'ptr2', name: 'Container With Most Water', difficulty: 'Medium', link: 'https://leetcode.com/problems/container-with-most-water/' },
+      { id: 'ptr3', name: 'Best Time to Buy/Sell Stock', difficulty: 'Easy', link: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/' },
+      { id: 'ptr4', name: 'Longest Substring Without Repeating Characters', difficulty: 'Medium', link: 'https://leetcode.com/problems/longest-substring-without-repeating-characters/' }
+    ]
+  },
+  {
+    id: 'structures',
+    title: 'Stacks, Queues & Linked Lists',
+    icon: 'splitscreen',
+    color: 'text-purple-500 bg-purple-50/50 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900/30',
+    problems: [
+      { id: 'struct1', name: 'Valid Parentheses', difficulty: 'Easy', link: 'https://leetcode.com/problems/valid-parentheses/' },
+      { id: 'struct2', name: 'Reverse Linked List', difficulty: 'Easy', link: 'https://leetcode.com/problems/reverse-linked-list/' },
+      { id: 'struct3', name: 'Merge Two Sorted Lists', difficulty: 'Easy', link: 'https://leetcode.com/problems/merge-two-sorted-lists/' },
+      { id: 'struct4', name: 'Linked List Cycle', difficulty: 'Easy', link: 'https://leetcode.com/problems/linked-list-cycle/' }
+    ]
+  },
+  {
+    id: 'trees',
+    title: 'Trees & Graphs',
+    icon: 'account_tree',
+    color: 'text-amber-500 bg-amber-50/50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30',
+    problems: [
+      { id: 'tree1', name: 'Invert Binary Tree', difficulty: 'Easy', link: 'https://leetcode.com/problems/invert-binary-tree/' },
+      { id: 'tree2', name: 'Maximum Depth of Binary Tree', difficulty: 'Easy', link: 'https://leetcode.com/problems/maximum-depth-of-binary-tree/' },
+      { id: 'tree3', name: 'Binary Tree Level Order Traversal', difficulty: 'Medium', link: 'https://leetcode.com/problems/binary-tree-level-order-traversal/' },
+      { id: 'tree4', name: 'Course Schedule', difficulty: 'Medium', link: 'https://leetcode.com/problems/course-schedule/' }
+    ]
+  },
+  {
+    id: 'dp',
+    title: 'Dynamic Programming',
+    icon: 'layers',
+    color: 'text-rose-500 bg-rose-50/50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30',
+    problems: [
+      { id: 'dp1', name: 'Climbing Stairs', difficulty: 'Easy', link: 'https://leetcode.com/problems/climbing-stairs/' },
+      { id: 'dp2', name: 'Coin Change', difficulty: 'Medium', link: 'https://leetcode.com/problems/coin-change/' },
+      { id: 'dp3', name: 'Longest Common Subsequence', difficulty: 'Medium', link: 'https://leetcode.com/problems/longest-common-subsequence/' },
+      { id: 'dp4', name: 'House Robber', difficulty: 'Medium', link: 'https://leetcode.com/problems/house-robber/' }
+    ]
+  }
+];
+
 const PlacementsPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
-  const [activeTab, setActiveTab] = useState('listings'); // 'listings', 'applications', 'ai-prep'
+  const [activeTab, setActiveTab] = useState('listings'); // 'listings', 'applications', 'ai-prep', 'dsa-tracker', 'resume-scorer', 'ai-interview'
   
   // Job Apply Form Modal State
   const [applyingJob, setApplyingJob] = useState(null);
@@ -22,6 +85,25 @@ const PlacementsPage = () => {
   const [targetJobType, setTargetJobType] = useState('Software Development');
   const [aiPrep, setAiPrep] = useState(null);
   const [loadingPrep, setLoadingPrep] = useState(false);
+
+  // DSA Tracker State
+  const [dsaProgress, setDsaProgress] = useState(() => {
+    const saved = localStorage.getItem('cs_dsa_progress');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Resume Scorer State
+  const [resumeText, setResumeText] = useState('');
+  const [diagnosis, setDiagnosis] = useState(null);
+  const [loadingDiagnosis, setLoadingDiagnosis] = useState(false);
+
+  // AI Mock Interview State
+  const [interviewStarted, setInterviewStarted] = useState(false);
+  const [interviewRole, setInterviewRole] = useState('Frontend Developer');
+  const [interviewDiff, setInterviewDiff] = useState('Medium');
+  const [interviewMessages, setInterviewMessages] = useState([]);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [loadingAnswer, setLoadingAnswer] = useState(false);
 
   useEffect(() => {
     fetchJobsAndApplications();
@@ -97,6 +179,161 @@ const PlacementsPage = () => {
     }
   };
 
+  // DSA progress toggling
+  const toggleDsaProblem = (problemId) => {
+    const updated = {
+      ...dsaProgress,
+      [problemId]: !dsaProgress[problemId]
+    };
+    setDsaProgress(updated);
+    localStorage.setItem('cs_dsa_progress', JSON.stringify(updated));
+    toast.success(updated[problemId] ? 'Problem marked as solved! +10 XP' : 'Problem unchecked');
+  };
+
+  const getDsaTotalStats = () => {
+    let total = 0;
+    let solved = 0;
+    defaultDsaTopics.forEach(t => {
+      t.problems.forEach(p => {
+        total++;
+        if (dsaProgress[p.id]) {
+          solved++;
+        }
+      });
+    });
+    const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
+    return { total, solved, percentage };
+  };
+
+  // Resume Diagnoser
+  const handleDiagnoseResume = async (e) => {
+    e.preventDefault();
+    if (!resumeText.trim()) {
+      toast.error('Please paste your resume details.');
+      return;
+    }
+
+    try {
+      setLoadingDiagnosis(true);
+      const prompt = `Act as an expert technical recruiter. Analyze the following resume details and provide a comprehensive and detailed critique. 
+      Return your response ONLY as a JSON object matching this exact schema structure:
+      {
+        "score": 82,
+        "metrics": {
+          "typos": "Excellent - Grammatically correct and completely free of spell errors.",
+          "formatting": "Good - Structure is readable but sections can be visually separated better.",
+          "actionVerbs": "Fair - Power verbs can be enhanced. Replace standard verbs like 'made' or 'worked' with action verbs.",
+          "impactMetrics": "Poor - Needs quantitative proof. Focus on concrete results instead of duties."
+        },
+        "suggestions": [
+          "Quantify your accomplishments. For example: 'Reduced database queries response time by 35% through indexing'.",
+          "Ensure your professional summary highlights your key expertise and primary developer stack directly.",
+          "Move skills section to the top to enhance ATS scan visibility."
+        ]
+      }
+
+      Resume content:
+      ${resumeText}`;
+
+      const response = await api.post('/ai/chat', {
+        messages: [{ role: 'user', content: prompt }],
+        context: 'placement'
+      });
+
+      if (response.data.success) {
+        const text = response.data.data.response;
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          setDiagnosis(parsed);
+          toast.success('Resume Diagnostics Completed!');
+        } else {
+          throw new Error('Invalid AI response formatting.');
+        }
+      }
+    } catch (error) {
+      console.error('Resume diagnostic error:', error);
+      toast.error('Resume diagnostic failed. Please try again.');
+    } finally {
+      setLoadingDiagnosis(false);
+    }
+  };
+
+  // AI Mock Interview
+  const handleStartInterview = async () => {
+    try {
+      setLoadingAnswer(true);
+      setInterviewStarted(true);
+      setInterviewMessages([]);
+
+      const systemPrompt = `You are a strict, experienced technical interviewer for a ${interviewRole} position. The difficulty is ${interviewDiff}. 
+      You will conduct a mock technical interview. Ask exactly one relevant coding/conceptual question at a time.
+      Wait for my answer. Once answered, rate my response with a score (e.g. 7/10), give highly critical technical feedback, and ask the next question.
+      Start the interview right now by welcoming me, stating the role, and asking the first question. Keep your question concise.`;
+
+      const response = await api.post('/ai/chat', {
+        messages: [{ role: 'user', content: 'Start the mock interview.' }],
+        context: 'placement',
+        contextRef: null // Avoid caching over multiple different starts
+      });
+
+      if (response.data.success) {
+        setInterviewMessages([
+          { role: 'assistant', content: response.data.data.response }
+        ]);
+      }
+    } catch (error) {
+      console.error('Interview start error:', error);
+      toast.error('Failed to start interview. Try again.');
+      setInterviewStarted(false);
+    } finally {
+      setLoadingAnswer(false);
+    }
+  };
+
+  const handleSendInterviewAnswer = async (e) => {
+    e.preventDefault();
+    if (!userAnswer.trim()) return;
+
+    const currentAnswer = userAnswer;
+    setUserAnswer('');
+    
+    // Add user answer locally
+    const updatedMessages = [
+      ...interviewMessages,
+      { role: 'user', content: currentAnswer }
+    ];
+    setInterviewMessages(updatedMessages);
+
+    try {
+      setLoadingAnswer(true);
+      
+      const promptContext = `The user is answering your previous question during the ${interviewRole} interview (${interviewDiff} difficulty). 
+      Provide a specific technical critique of their answer, score it out of 10, then ask the next technical question. 
+      Keep it professional, direct, and under 150 words.
+      
+      Conversation History:
+      ${updatedMessages.map(m => `${m.role === 'user' ? 'User' : 'Interviewer'}: ${m.content}`).join('\n')}`;
+
+      const response = await api.post('/ai/chat', {
+        messages: [{ role: 'user', content: promptContext }],
+        context: 'placement'
+      });
+
+      if (response.data.success) {
+        setInterviewMessages(prev => [
+          ...prev,
+          { role: 'assistant', content: response.data.data.response }
+        ]);
+      }
+    } catch (error) {
+      console.error('Mock interview send error:', error);
+      toast.error('Interviewer connection lost.');
+    } finally {
+      setLoadingAnswer(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
@@ -105,51 +342,44 @@ const PlacementsPage = () => {
     );
   }
 
+  const dsaStats = getDsaTotalStats();
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-12">
       {/* Page Header */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-800 dark:text-white flex items-center gap-2">
-            <Icon name="work" className="text-amber-500" /> Placement Portal
+            <Icon name="work" className="text-amber-500" /> Placement War Room
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">
-            Apply to active corporate listings and generate personalized AI practice questions.
+            Apply to active corporate openings, track your DSA readiness, diagnose resumes, or simulate live AI mock technical interviews.
           </p>
         </div>
 
         {/* Action Tabs */}
-        <div className="flex bg-slate-50 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-100 dark:border-slate-800 gap-1 self-start md:self-auto">
-          <button
-            onClick={() => setActiveTab('listings')}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
-              activeTab === 'listings'
-                ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            Job Openings
-          </button>
-          <button
-            onClick={() => setActiveTab('applications')}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
-              activeTab === 'applications'
-                ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            My Applications
-          </button>
-          <button
-            onClick={() => setActiveTab('ai-prep')}
-            className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${
-              activeTab === 'ai-prep'
-                ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            AI Interview Prep
-          </button>
+        <div className="flex bg-slate-50 dark:bg-slate-900 p-1 rounded-2xl border border-slate-100 dark:border-slate-800 gap-1 self-start xl:self-auto overflow-x-auto max-w-full no-scrollbar">
+          {[
+            { id: 'listings', label: 'Job Openings', icon: 'business_center' },
+            { id: 'applications', label: 'My Applications', icon: 'description' },
+            { id: 'ai-prep', label: 'AI Study Planner', icon: 'auto_awesome' },
+            { id: 'dsa-tracker', label: 'DSA Roadmap', icon: 'code' },
+            { id: 'resume-scorer', label: 'Resume Diagnostic', icon: 'analytics' },
+            { id: 'ai-interview', label: 'Mock Interview', icon: 'forum' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-3 py-1.8 rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm border border-slate-100 dark:border-slate-700/50'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              <Icon name={tab.icon} className="text-sm" />
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -222,7 +452,7 @@ const PlacementsPage = () => {
       )}
 
       {activeTab === 'applications' && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/80 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100 dark:border-slate-700">
             <h2 className="font-black text-slate-800 dark:text-white text-base">Submitted Applications</h2>
           </div>
@@ -376,6 +606,374 @@ const PlacementsPage = () => {
         </div>
       )}
 
+      {/* ============ TAB 4: DSA ROADMAP TRACKER ============ */}
+      {activeTab === 'dsa-tracker' && (
+        <div className="space-y-6">
+          {/* Progress Overview Card */}
+          <div className="bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2">
+              <h2 className="text-xl md:text-2xl font-black">DSA Roadmap Mastery</h2>
+              <p className="text-white/80 text-xs font-semibold max-w-lg">
+                Complete classic interview programming questions across core structures to secure your next software engineering opportunity.
+              </p>
+              <div className="flex gap-4 pt-2">
+                <div className="bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-center">
+                  <span className="text-[10px] font-bold text-white/60 block uppercase tracking-wide">Solved Problems</span>
+                  <span className="text-sm font-black">{dsaStats.solved} / {dsaStats.total}</span>
+                </div>
+                <div className="bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 text-center">
+                  <span className="text-[10px] font-bold text-white/60 block uppercase tracking-wide">Roadmap Progress</span>
+                  <span className="text-sm font-black">{dsaStats.percentage}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Circular Gauge */}
+            <div className="relative w-24 h-24 flex items-center justify-center">
+              <svg className="absolute w-full h-full transform -rotate-90">
+                <circle cx="48" cy="48" r="38" stroke="rgba(255,255,255,0.15)" strokeWidth="8" fill="transparent" />
+                <circle
+                  cx="48"
+                  cy="48"
+                  r="38"
+                  stroke="white"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray="239"
+                  strokeDashoffset={239 - (239 * dsaStats.percentage) / 100}
+                  className="transition-all duration-700 ease-out"
+                />
+              </svg>
+              <span className="text-base font-black tracking-tight">{dsaStats.percentage}%</span>
+            </div>
+          </div>
+
+          {/* Topics & Problems Node Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {defaultDsaTopics.map(topic => {
+              const solvedCount = topic.problems.filter(p => dsaProgress[p.id]).length;
+              const progressPercentage = Math.round((solvedCount / topic.problems.length) * 100);
+
+              return (
+                <div key={topic.id} className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 p-5 shadow-sm space-y-4">
+                  {/* Topic Title Bar */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border ${topic.color}`}>
+                        <Icon name={topic.icon} className="text-lg" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-slate-800 dark:text-white text-sm">{topic.title}</h4>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{solvedCount} of {topic.problems.length} Solved</span>
+                      </div>
+                    </div>
+                    {/* Linear mini progress */}
+                    <div className="w-16 bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-800">
+                      <div className="bg-indigo-500 h-full transition-all duration-500" style={{ width: `${progressPercentage}%` }} />
+                    </div>
+                  </div>
+
+                  {/* Problem Node List */}
+                  <div className="space-y-2 pt-2 border-t border-slate-50 dark:border-slate-700/40">
+                    {topic.problems.map(problem => {
+                      const isSolved = !!dsaProgress[problem.id];
+                      return (
+                        <div
+                          key={problem.id}
+                          className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
+                            isSolved
+                              ? 'bg-emerald-50/20 dark:bg-emerald-950/5 border-emerald-100/50 dark:border-emerald-950/20'
+                              : 'bg-slate-50/50 dark:bg-slate-900/30 border-slate-100/70 dark:border-slate-800/80 hover:border-slate-200/80 dark:hover:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => toggleDsaProblem(problem.id)}
+                              className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                                isSolved
+                                  ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                  : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500 dark:hover:border-indigo-400'
+                              }`}
+                            >
+                              {isSolved && <Icon name="check" className="text-xs font-black" />}
+                            </button>
+                            <div>
+                              <a
+                                href={problem.link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-xs font-extrabold text-slate-700 dark:text-slate-200 hover:text-indigo-500 dark:hover:text-indigo-400 hover:underline flex items-center gap-1"
+                              >
+                                {problem.name} <Icon name="open_in_new" className="text-[10px]" />
+                              </a>
+                              <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                                problem.difficulty === 'Easy' ? 'text-emerald-500' : 'text-amber-500'
+                              }`}>{problem.difficulty}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ============ TAB 5: RESUME DIAGNOSTIC SCORER ============ */}
+      {activeTab === 'resume-scorer' && (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Input Box Card */}
+          <div className="xl:col-span-1 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 p-5 shadow-sm space-y-4 h-fit">
+            <div>
+              <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
+                <Icon name="analytics" className="text-indigo-500" /> ATS Resume Diagnoser
+              </h3>
+              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 mt-1 leading-relaxed">
+                Paste your complete text-based resume (skills, history, achievements) to calculate a compatibility rating and reveal direct recruitment enhancements.
+              </p>
+            </div>
+
+            <form onSubmit={handleDiagnoseResume} className="space-y-4">
+              <textarea
+                rows={12}
+                required
+                placeholder="Paste complete plain text details of your resume here..."
+                value={resumeText}
+                onChange={(e) => setResumeText(e.target.value)}
+                className="w-full p-3.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl focus:outline-none dark:text-white font-medium resize-none leading-relaxed"
+              />
+
+              <button
+                type="submit"
+                disabled={loadingDiagnosis}
+                className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {loadingDiagnosis ? <Loader size="sm" /> : <Icon name="troubleshoot" className="text-sm" />}
+                {loadingDiagnosis ? 'Analyzing Content...' : 'Diagnose My Resume'}
+              </button>
+            </form>
+          </div>
+
+          {/* Results Diagnostic Card */}
+          <div className="xl:col-span-2 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 p-6 shadow-sm min-h-[400px]">
+            {loadingDiagnosis ? (
+              <div className="flex flex-col items-center justify-center py-24 gap-3">
+                <Loader size="lg" />
+                <span className="text-xs font-semibold text-slate-400">Recruiter AI is scoring your achievements...</span>
+              </div>
+            ) : diagnosis ? (
+              <div className="space-y-6 animate-fade-in">
+                {/* Score Section */}
+                <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800">
+                  <div className="relative w-20 h-20 flex items-center justify-center">
+                    <svg className="absolute w-full h-full transform -rotate-90">
+                      <circle cx="40" cy="40" r="32" stroke="rgba(99, 102, 241, 0.15)" strokeWidth="6" fill="transparent" />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="32"
+                        stroke={diagnosis.score >= 80 ? '#10b981' : '#f59e0b'}
+                        strokeWidth="6"
+                        fill="transparent"
+                        strokeDasharray="201"
+                        strokeDashoffset={201 - (201 * diagnosis.score) / 100}
+                        className="transition-all duration-700 ease-out"
+                      />
+                    </svg>
+                    <span className="text-lg font-black tracking-tight text-slate-800 dark:text-white">{diagnosis.score}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-slate-800 dark:text-white">Compatibility Score: {diagnosis.score}/100</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+                      {diagnosis.score >= 80 ? '🔥 Strong Candidate profile - Excellent structural compatibility!' : '⚠️ Needs optimization - Focus on metrics and action words.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Specific metrics grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {Object.entries(diagnosis.metrics || {}).map(([key, val]) => (
+                    <div key={key} className="p-3.5 bg-slate-50/50 dark:bg-slate-900/25 border border-slate-100 dark:border-slate-800/80 rounded-2xl space-y-1">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">{key}</span>
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-normal">{val}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Suggestions List */}
+                <div className="space-y-3">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Actionable Enhancements</span>
+                  <ul className="space-y-2.5">
+                    {diagnosis.suggestions?.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                        <Icon name="check_circle" className="text-indigo-500 text-sm mt-0.5 flex-shrink-0" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-28 text-slate-400 dark:text-slate-500 space-y-2.5">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/25 flex items-center justify-center text-indigo-500">
+                  <Icon name="troubleshoot" className="text-xl" />
+                </div>
+                <h4 className="font-bold text-slate-700 dark:text-slate-300">Resume Diagnostic Report</h4>
+                <p className="text-xs font-bold max-w-[250px] mx-auto text-center leading-relaxed">
+                  Enter your resume details on the left panel to fetch an ATS score rating and key tips.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ============ TAB 6: AI MOCK INTERVIEW SIMULATOR ============ */}
+      {activeTab === 'ai-interview' && (
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 min-h-[500px]">
+          {/* Settings Panel */}
+          <div className="xl:col-span-1 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 p-5 shadow-sm space-y-4 h-fit">
+            <div>
+              <h3 className="font-black text-slate-800 dark:text-white text-sm flex items-center gap-1.5">
+                <Icon name="forum" className="text-indigo-500" /> Interactive Mock Interview
+              </h3>
+              <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-400 mt-1 leading-relaxed">
+                Start a dynamic oral technical interview mock. The AI technical lead evaluates and scores every answer.
+              </p>
+            </div>
+
+            <div className="space-y-4 border-t border-slate-50 dark:border-slate-700/50 pt-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Target Developer Role</label>
+                <select
+                  disabled={interviewStarted}
+                  value={interviewRole}
+                  onChange={(e) => setInterviewRole(e.target.value)}
+                  className="w-full p-2.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none dark:text-white font-semibold"
+                >
+                  <option value="Frontend Developer">Frontend Developer</option>
+                  <option value="Backend Developer">Backend Developer</option>
+                  <option value="Fullstack Engineer">Fullstack Engineer</option>
+                  <option value="AI/ML Engineer">AI/ML Engineer</option>
+                  <option value="Data Scientist">Data Scientist</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Difficulty Level</label>
+                <select
+                  disabled={interviewStarted}
+                  value={interviewDiff}
+                  onChange={(e) => setInterviewDiff(e.target.value)}
+                  className="w-full p-2.5 text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none dark:text-white font-semibold"
+                >
+                  <option value="Easy">Easy (Conceptual/Basics)</option>
+                  <option value="Medium">Medium (Coding/Algorithms)</option>
+                  <option value="Hard">Hard (System Design/Deep Dive)</option>
+                </select>
+              </div>
+
+              {!interviewStarted ? (
+                <button
+                  onClick={handleStartInterview}
+                  disabled={loadingAnswer}
+                  className="w-full py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Icon name="rocket_launch" className="text-sm" />
+                  Start Mock Interview
+                </button>
+              ) : (
+                <button
+                  onClick={() => setInterviewStarted(false)}
+                  className="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 dark:hover:bg-rose-950/40 font-extrabold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Icon name="stop_circle" className="text-sm" />
+                  Terminate Session
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Interactive Chat Console */}
+          <div className="xl:col-span-3 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/80 p-5 shadow-sm flex flex-col justify-between min-h-[500px]">
+            {interviewStarted ? (
+              <div className="flex-1 flex flex-col justify-between space-y-4">
+                {/* Message Log */}
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1 max-h-[360px]">
+                  {interviewMessages.map((msg, idx) => {
+                    const isUser = msg.role === 'user';
+                    return (
+                      <div key={idx} className={`flex items-start gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                        {!isUser && (
+                          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-900 border border-indigo-100 dark:border-indigo-950 flex items-center justify-center text-indigo-500 flex-shrink-0 mt-1">
+                            <Icon name="support_agent" className="text-sm" />
+                          </div>
+                        )}
+                        <div className={`p-3.5 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
+                          isUser
+                            ? 'bg-indigo-600 text-white font-semibold rounded-tr-none'
+                            : 'bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-200 border border-slate-100/50 dark:border-slate-800/80 font-medium rounded-tl-none'
+                        }`}>
+                          <span className="text-[9px] font-black uppercase tracking-wider block opacity-60 mb-1">
+                            {isUser ? 'Your Answer' : `${interviewRole} Interviewer`}
+                          </span>
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        </div>
+                        {isUser && (
+                          <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-black flex-shrink-0 mt-1">
+                            {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {loadingAnswer && (
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 px-3">
+                      <Loader size="sm" />
+                      <span>Interviewer is analyzing your response...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Input form */}
+                <form onSubmit={handleSendInterviewAnswer} className="border-t border-slate-50 dark:border-slate-700/50 pt-4 flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    disabled={loadingAnswer}
+                    placeholder="Type your structured technical response..."
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs focus:outline-none dark:text-white font-medium"
+                  />
+                  <button
+                    type="submit"
+                    disabled={loadingAnswer || !userAnswer.trim()}
+                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1"
+                  >
+                    <Icon name="send" className="text-xs" />
+                    Submit Answer
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 space-y-3">
+                <div className="w-14 h-14 rounded-3xl bg-indigo-50 dark:bg-indigo-950/25 flex items-center justify-center text-indigo-500">
+                  <Icon name="forum" className="text-2xl" />
+                </div>
+                <h4 className="font-extrabold text-slate-700 dark:text-slate-300">Start Simulated Technical Session</h4>
+                <p className="text-xs font-semibold max-w-[260px] mx-auto text-center leading-relaxed">
+                  Select your target developer role and difficulty, then click "Start Mock Interview" to begin your interactive review.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Apply Form Modal */}
       {applyingJob && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -440,3 +1038,4 @@ const PlacementsPage = () => {
 };
 
 export default PlacementsPage;
+

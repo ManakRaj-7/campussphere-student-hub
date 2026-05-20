@@ -90,7 +90,7 @@ const WellnessPage = () => {
         setNote('');
         
         // Prepend new entry to history list
-        setHistory((prev) => [response.data.data, ...prev]);
+        setHistory((prev) => [response.data.data, ...(Array.isArray(prev) ? prev : [])]);
 
         // Update recommendation if backend returned one
         if (response.data.data.aiRecommendation) {

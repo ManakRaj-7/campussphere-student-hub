@@ -4,8 +4,10 @@ import ApiError from '../utils/ApiError.js';
 import { formatResponse, paginate } from '../utils/helpers.js';
 import { getPlacementPrep as getAIPlacementPrep } from '../services/aiService.js';
 import fs from 'fs';
-import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdf = require('pdf-parse');
 import { getModel } from '../config/gemini.js';
 
 /**

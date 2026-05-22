@@ -233,7 +233,7 @@ const ProfilePage = () => {
             <div className="w-full pt-4 border-t border-slate-100 dark:border-slate-700/50 grid grid-cols-2 gap-4">
               <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Attendance Streak</span>
-                <span className="text-xl font-black text-slate-800 dark:text-white">{user?.streak || 0} Days</span>
+                <span className="text-xl font-black text-slate-800 dark:text-white">{user?.streak ?? 0} Days</span>
               </div>
               <div className="p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Role Status</span>

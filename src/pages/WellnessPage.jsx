@@ -14,6 +14,7 @@ const WellnessPage = () => {
   // Form State
   const [mood, setMood] = useState('good'); // great, good, okay, low, bad
   const [focusLevel, setFocusLevel] = useState('medium'); // high, medium, low, very_low
+  const [subject, setSubject] = useState('');
   const [note, setNote] = useState('');
 
   // Interactive Breathing Guide State
@@ -64,13 +65,13 @@ const WellnessPage = () => {
       // Get wellness history
       const historyResponse = await api.get('/wellness/history');
       if (historyResponse.data.success) {
-        setHistory(historyResponse.data.data);
+        setHistory(historyResponse.data.data?.logs || []);
       }
 
       // Get latest AI wellness recommendation
       const aiResponse = await api.get('/wellness/recommendation');
       if (aiResponse.data.success && aiResponse.data.data) {
-        setAiRecommendation(aiResponse.data.data.aiRecommendation);
+        setAiRecommendation(aiResponse.data.data.recommendation || '');
       }
     } catch (error) {
       console.error('Error fetching wellness data:', error);
@@ -84,20 +85,20 @@ const WellnessPage = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await api.post('/wellness/log', { mood, focusLevel, note });
+      const response = await api.post('/wellness/log', { mood, focusLevel, subject, note });
       if (response.data.success) {
         toast.success('Wellness status logged successfully! 🧘‍♀️');
         setNote('');
-        
-        // Prepend new entry to history list
-        setHistory((prev) => [response.data.data, ...(Array.isArray(prev) ? prev : [])]);
+        setSubject('');
+
+        const newLog = response.data.data?.log || response.data.data;
+        setHistory((prev) => [newLog, ...(Array.isArray(prev) ? prev : [])]);
 
         // Update recommendation if backend returned one
-        if (response.data.data.aiRecommendation) {
-          setAiRecommendation(response.data.data.aiRecommendation);
+        if (newLog?.aiRecommendation) {
+          setAiRecommendation(newLog.aiRecommendation);
         } else {
-          // Trigger a direct recommendation fetch
-          handleFetchAiRecommendation();
+          await handleFetchAiRecommendation();
         }
       }
     } catch (error) {
@@ -113,7 +114,7 @@ const WellnessPage = () => {
     try {
       const response = await api.get('/wellness/recommendation');
       if (response.data.success && response.data.data) {
-        setAiRecommendation(response.data.data.aiRecommendation);
+        setAiRecommendation(response.data.data.recommendation || '');
         toast.success('Serenity insights updated!');
       } else {
         toast.error('No recommendation returned yet.');
@@ -158,7 +159,7 @@ const WellnessPage = () => {
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Mindfulness & Wellness</h1>
           <p className="text-white/80 text-sm mt-2 font-medium">
-            Take a deep breath. Align your focus, log your daily energy, and unlock Gemini-powered suggestions to navigate academic stress.
+            Take a deep breath. Align your focus, log your daily energy, and unlock Gemini 3 Flash-powered suggestions to navigate academic stress.
           </p>
         </div>
       </div>
@@ -236,6 +237,19 @@ const WellnessPage = () => {
                       </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Subject tracker input */}
+                <div className="space-y-1">
+                  <label className="text-xs font-black text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                    Subject / Focus area (Optional)
+                  </label>
+                  <input
+                    placeholder="e.g. Calculus, Data Structures, or Project Planning"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 rounded-xl p-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 dark:text-slate-100 font-semibold"
+                  />
                 </div>
 
                 {/* Journal entry notes */}
@@ -316,14 +330,14 @@ const WellnessPage = () => {
             </div>
           </div>
 
-          {/* RIGHT: Gemini AI Wellness Advisor & History Logs */}
+          {/* RIGHT: Gemini 3 Flash Wellness Advisor & History Logs */}
           <div className="space-y-6">
-            {/* Gemini AI Wellness Advice Panel */}
+            {/* Gemini 3 Flash Wellness Advice Panel */}
             <div className="bg-gradient-to-br from-teal-950 via-slate-900 to-indigo-950 rounded-2xl p-5 text-white border border-teal-900/20 shadow-md">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="font-black text-teal-400 text-sm flex items-center gap-1.5">
                   <Icon name="auto_awesome" fill={1} className="text-sm text-teal-400" />
-                  Gemini Wellness Advice
+                  Gemini 3 Flash Wellness Advice
                 </h3>
                 <button
                   onClick={handleFetchAiRecommendation}
@@ -374,6 +388,12 @@ const WellnessPage = () => {
                       <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5 capitalize">
                         <Icon name="bolt" className="text-xs text-amber-500" /> Focus Capacity: <span className="font-extrabold text-slate-700 dark:text-slate-300">{log.focusLevel}</span>
                       </div>
+
+                      {log.subject && (
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-1.5">
+                          <Icon name="class" className="text-xs text-sky-500" /> Subject: <span className="font-extrabold text-slate-700 dark:text-slate-300">{log.subject}</span>
+                        </div>
+                      )}
 
                       {log.note && (
                         <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 italic border-l-2 border-indigo-500/25 pl-2 leading-relaxed">

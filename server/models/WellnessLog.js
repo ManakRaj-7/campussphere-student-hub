@@ -23,6 +23,11 @@ const wellnessLogSchema = new mongoose.Schema(
       },
       required: [true, 'Focus level is required'],
     },
+    subject: {
+      type: String,
+      maxlength: [120, 'Subject cannot exceed 120 characters'],
+      default: '',
+    },
     note: {
       type: String,
       maxlength: [1000, 'Note cannot exceed 1000 characters'],

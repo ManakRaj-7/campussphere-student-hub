@@ -18,7 +18,7 @@ const DashboardPage = () => {
   const [xp, setXp] = useState(2450);
   const xpNeededForNextLevel = 3000;
   const currentLevel = 4;
-  const userStreak = user?.streak || 5;
+  const userStreak = user?.streak ?? 0;
 
   // Pomodoro Focus Timer State
   const [timerActive, setTimerActive] = useState(false);
@@ -478,7 +478,7 @@ const DashboardPage = () => {
               <div className="text-center py-8">
                 <Icon name="chat" className="text-4xl text-indigo-400/40 mb-3" />
                 <p className="text-slate-300 text-sm font-medium max-w-sm mx-auto mb-4">
-                  Get a personalized, Gemini-powered morning briefing of your classes, attendance streak, and campus tips.
+                  Get a personalized, Gemini 3 Flash-powered morning briefing of your classes, attendance streak, and campus tips.
                 </p>
                 <button
                   onClick={generateBriefing}

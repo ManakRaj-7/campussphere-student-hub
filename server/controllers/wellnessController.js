@@ -42,7 +42,7 @@ export const getHistory = async (req, res, next) => {
  */
 export const logWellness = async (req, res, next) => {
   try {
-    const { mood, focusLevel, note } = req.body;
+    const { mood, focusLevel, subject, note } = req.body;
 
     if (!mood || !focusLevel) {
       throw ApiError.badRequest('Mood and focus level are required.');
@@ -50,6 +50,7 @@ export const logWellness = async (req, res, next) => {
 
     const log = await WellnessLog.create({
       user: req.user._id,
+      subject: subject?.trim() || '',
       mood,
       focusLevel,
       note: note || '',

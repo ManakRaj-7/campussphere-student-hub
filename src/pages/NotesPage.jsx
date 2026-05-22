@@ -131,7 +131,7 @@ const NotesPage = () => {
 
   const handleSummarizeNote = async (noteId) => {
     try {
-      toast.loading('Gemini AI is analyzing lecture...', { id: 'summarize' });
+      toast.loading('Gemini 3 Flash is analyzing lecture...', { id: 'summarize' });
       const response = await api.post(`/notes/${noteId}/summarize`);
       if (response.data.success) {
         toast.success('AI Summary Generated!', { id: 'summarize' });

@@ -1,7 +1,16 @@
 import { getModel } from '../config/gemini.js';
 
+const formatGeneratedText = (result) => {
+  if (!result) return '';
+  if (typeof result === 'string') return result;
+  if (result.response && typeof result.response.text === 'function') {
+    return result.response.text();
+  }
+  return String(result);
+};
+
 /**
- * Summarize lecture content using Gemini AI
+ * Summarize lecture content using Gemini 3 Flash via OpenRouter
  */
 export const summarizeLecture = async (content) => {
   try {
@@ -21,8 +30,8 @@ Respond ONLY with valid JSON in this exact format:
 Lecture content:
 ${content}`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const result = await model.generateContent(prompt, { stream: false });
+    const responseText = formatGeneratedText(result);
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -46,23 +55,43 @@ export const chatWithContext = async (messages, systemContext = '') => {
   try {
     const model = getModel();
     if (!model) {
-      return 'AI service is currently unavailable. Please try again later.';
+      return {
+        responseText: 'AI service is currently unavailable. Please try again later.',
+        metadata: null,
+      };
     }
 
-    const contextPrompt = systemContext ? `System context: ${systemContext}\n\n` : '';
-    const conversationHistory = messages
-      .map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n');
+    const normalizedMessages = [];
+    if (systemContext) {
+      normalizedMessages.push({ role: 'system', content: systemContext });
+    }
 
-    const fullPrompt = contextPrompt +
-      'You are CampusSphere AI, a helpful campus assistant for college students. Be concise, friendly, and helpful. Continue this conversation:\n\n' +
-      conversationHistory + '\nAssistant:';
+    normalizedMessages.push(
+      ...messages.map((msg) => ({
+        role: msg.role === 'assistant' ? 'assistant' : 'user',
+        content: String(msg.content || ''),
+      }))
+    );
 
-    const result = await model.generateContent(fullPrompt);
-    return result.response.text();
+    const result = await model.generateContent(normalizedMessages, { stream: true });
+    const responseText = formatGeneratedText(result);
+
+    return {
+      responseText,
+      metadata: {
+        provider: result.provider || 'openrouter',
+        model: result.model,
+        label: result.label,
+        fallbackActivated: result.fallbackActivated,
+        attemptedModels: result.attemptedModels,
+      },
+    };
   } catch (error) {
     console.error('AI chat error:', error.message);
-    return 'I apologize, but I am unable to respond right now. Please try again later.';
+    return {
+      responseText: 'I apologize, but I am unable to respond right now. Please try again later.',
+      metadata: null,
+    };
   }
 };
 
@@ -83,8 +112,8 @@ ${JSON.stringify(performanceData, null, 2)}
 
 Provide your response as helpful, encouraging advice in 3-5 paragraphs.`;
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const result = await model.generateContent(prompt, { stream: true });
+    return formatGeneratedText(result);
   } catch (error) {
     console.error('AI study insights error:', error.message);
     return 'Unable to generate study insights at this time. Try maintaining a consistent study schedule and reviewing your notes regularly.';
@@ -111,8 +140,8 @@ ${JSON.stringify(scheduleData, null, 2)}
 
 Provide 3-5 specific, actionable wellness recommendations. Include suggestions for stress management, sleep, exercise, and social activities.`;
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const result = await model.generateContent(prompt, { stream: true });
+    return formatGeneratedText(result);
   } catch (error) {
     console.error('AI wellness error:', error.message);
     return 'Remember to take regular breaks, stay hydrated, get enough sleep, and reach out to friends or counselors if you need support.';
@@ -136,8 +165,8 @@ ${JSON.stringify(userData, null, 2)}
 
 Generate a personalized morning briefing that mentions their upcoming classes, deadlines, streak progress, and a motivational note.`;
 
-    const result = await model.generateContent(prompt);
-    return result.response.text();
+    const result = await model.generateContent(prompt, { stream: true });
+    return formatGeneratedText(result);
   } catch (error) {
     console.error('AI briefing error:', error.message);
     return 'Good morning! Start your day strong. Check your schedule, review your notes, and stay focused. You\'ve got this!';
@@ -154,6 +183,7 @@ export const getPlacementPrep = async (profile, jobType) => {
       return {
         questions: ['Tell me about yourself.', 'Why do you want this role?', 'What are your strengths?'],
         tips: ['Research the company thoroughly.', 'Practice coding problems daily.', 'Prepare your elevator pitch.'],
+        topics: ['Data Structures'],
       };
     }
 
@@ -173,8 +203,8 @@ Respond ONLY with valid JSON in this exact format:
 
 Generate 5 relevant interview questions, 5 preparation tips, and 3 key topics to study.`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const result = await model.generateContent(prompt, { stream: true });
+    const responseText = formatGeneratedText(result);
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);

@@ -34,8 +34,9 @@ export const chatWithAssistant = async (req, res, next) => {
       systemContext = `The user is preparing for placements. Student Profile:\nName: ${user.name}\nDepartment: ${user.department}\nYear: ${user.year}\nBio: ${user.bio || 'Not provided'}`;
     }
 
-    // Call Gemini AI service
-    const aiResponseText = await aiService.chatWithContext(messages, systemContext);
+    // Call OpenRouter-backed Gemini 3 Flash AI service
+    const aiResult = await aiService.chatWithContext(messages, systemContext);
+    const aiResponseText = aiResult.responseText;
 
     // Save to ChatHistory DB
     let chat = null;
@@ -60,7 +61,7 @@ export const chatWithAssistant = async (req, res, next) => {
       });
     }
 
-    res.status(200).json(formatResponse({ response: aiResponseText, chat }, 'AI response generated successfully.'));
+    res.status(200).json(formatResponse({ response: aiResponseText, metadata: aiResult.metadata, chat }, 'AI response generated successfully.'));
   } catch (error) {
     next(error);
   }

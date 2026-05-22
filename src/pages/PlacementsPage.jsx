@@ -436,7 +436,7 @@ const PlacementsPage = () => {
               <Icon name="auto_awesome" fill={1} className="text-indigo-500" /> AI Placement Prep Plan
             </h3>
             <p className="text-xs text-slate-400 dark:text-slate-400 leading-relaxed font-semibold">
-              Generate structured practice interview questions, target topics, and preparation guidelines using Gemini.
+              Generate structured practice interview questions, target topics, and preparation guidelines using Gemini 3 Flash.
             </p>
             <div className="space-y-4 pt-2">
               <div>
@@ -466,7 +466,7 @@ const PlacementsPage = () => {
             {loadingPrep ? (
               <div className="flex flex-col items-center justify-center py-20 gap-3">
                 <Loader size="lg" />
-                <span className="text-xs font-semibold text-slate-400">Gemini is writing custom practice questions...</span>
+                <span className="text-xs font-semibold text-slate-400">Gemini 3 Flash is writing custom practice questions...</span>
               </div>
             ) : aiPrep ? (
               <div className="space-y-6 animate-fade-in">

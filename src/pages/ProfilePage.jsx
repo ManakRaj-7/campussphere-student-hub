@@ -99,6 +99,35 @@ const ProfilePage = () => {
     }
   };
 
+  const defaultAvatars = [
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere1',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere2',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere3',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere4',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere5',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere6',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere7',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere8',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere9',
+    'https://api.dicebear.com/5.x/avataaars/svg?seed=CampusSphere10',
+  ];
+
+  const setDefaultAvatar = async (avatarUrl) => {
+    setUploadingAvatar(true);
+    try {
+      const response = await api.put('/users/avatar/default', { avatarUrl });
+      if (response.data.success) {
+        toast.success('Avatar selected successfully!');
+        setUser(response.data.data.user);
+      }
+    } catch (error) {
+      console.error('Error setting default avatar:', error);
+      toast.error(error.response?.data?.message || 'Could not set default avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const uploadAvatarFile = async (file) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -252,6 +281,23 @@ const ProfilePage = () => {
 
         {/* Right Side: Edit Forms */}
         <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm">
+            <h3 className="text-md font-black text-slate-800 dark:text-white mb-4">Choose a Default Avatar</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Pick one of these ready-made avatars if you don’t want to upload your own photo.</p>
+            <div className="grid grid-cols-5 gap-3 mb-6">
+              {defaultAvatars.map((avatarUrl, idx) => (
+                <button
+                  key={avatarUrl}
+                  type="button"
+                  onClick={() => setDefaultAvatar(avatarUrl)}
+                  className="w-full h-20 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:ring-2 hover:ring-indigo-500 transition"
+                >
+                  <img src={avatarUrl} alt={`Default avatar ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Edit Profile Form */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700/80 shadow-sm">
             <h3 className="text-md font-black text-slate-800 dark:text-white mb-4 flex items-center gap-2">

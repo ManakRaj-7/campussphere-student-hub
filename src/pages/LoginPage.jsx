@@ -54,8 +54,8 @@ const LoginPage = () => {
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">C</span>
+            <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-2xl shadow-cyan-500/20">
+              <span className="text-white font-black text-2xl">CS</span>
             </div>
             <span className="text-white text-2xl font-bold">CampusSphere</span>
           </div>
@@ -105,8 +105,8 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-10 h-10 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+              <span className="text-white font-black text-lg">CS</span>
             </div>
             <span className="text-xl font-bold text-slate-900 dark:text-white">CampusSphere</span>
           </div>

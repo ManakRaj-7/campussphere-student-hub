@@ -1,17 +1,19 @@
-# 🎓 CampusSphere
+# CampusSphere
 
 CampusSphere is a modern, full-stack student hub built for university and college campuses. It unifies AI-assisted study help, community collaboration, placement preparation, and wellness tracking in one secure web app.
 
-## ✨ Core Features
+## Core Features
 
-* **AI Academic Copilot:** Single backend AI integration via OpenRouter with Gemini 3 Flash as the primary model.
-* **Study Notes & Summaries:** Auto-summarize notes, generate flashcards, and ask AI questions about lectures.
-* **Wellness Tracking:** Log mood, focus, and subject goals, with AI-powered wellbeing suggestions.
-* **Placement Preparation:** Generate interview questions, tips, and study topics using AI.
-* **Campus Community:** Student clubs, events, posts, and peer matching.
-* **Profile & Progress:** Track attendance streaks, course progress, and study momentum.
+- **AI Academic Copilot:** Single backend AI integration via OpenRouter with Gemini 3 Flash as the primary model.
+- **Study Notes & Summaries:** Auto-summarize notes, generate flashcards, and ask AI questions about lectures.
+- **Course Management:** Add, update, or remove courses from the campus catalog once signed in.
+- **Wellness Tracking:** Log mood, focus, and subject goals, with AI-powered wellbeing suggestions.
+- **Placement Preparation:** Generate interview questions, tips, and study topics using AI.
+- **Campus Community:** Student clubs, events, posts, and peer matching.
+- **Profile & Progress:** Track attendance streaks, course progress, and study momentum.
+- **Profile Avatars:** Choose from 10 default generated avatars or upload your own.
 
-## 🚀 AI Architecture
+## AI Architecture
 
 CampusSphere now uses a centralized OpenRouter backend integration. The AI flow is:
 
@@ -33,15 +35,15 @@ CampusSphere now uses a centralized OpenRouter backend integration. The AI flow 
   * `mistralai/mistral-small-24b-instruct-2501:free`
   * `mistralai/mistral-small-3.2-24b-instruct`
 
-## 🧩 Tech Stack
+## Tech Stack
 
-* **Frontend:** React, Vite, Tailwind CSS
-* **Backend:** Node.js, Express
-* **Database:** MongoDB / Mongoose
-* **Real-time:** Socket.IO
-* **AI Provider:** OpenRouter
+- **Frontend:** React, Vite, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Database:** MongoDB / Mongoose
+- **Real-time:** Socket.IO
+- **AI Provider:** OpenRouter
 
-## 🛠️ Setup
+## Setup
 
 ### 1. Install dependencies
 

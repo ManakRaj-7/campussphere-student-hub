@@ -50,6 +50,124 @@ const PlacementsPage = () => {
     fetchJobsAndApplications();
   }, []);
 
+  const fallbackJobCards = [
+    {
+      _id: 'fallback-1',
+      title: 'AI Product Designer',
+      company: 'Nova Labs',
+      description: 'Shape product experiences for AI-driven education tools.',
+      requirements: ['UX design', 'Figma', 'AI awareness'],
+      salary: '$80,000 / year',
+      location: 'Remote',
+      type: 'full-time',
+      deadline: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-2',
+      title: 'Cloud Support Engineer',
+      company: 'Skyline Cloud',
+      description: 'Help customers successfully deploy cloud infrastructure.',
+      requirements: ['Linux', 'AWS/GCP', 'customer support'],
+      salary: '$85,000 / year',
+      location: 'Austin, TX',
+      type: 'full-time',
+      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-3',
+      title: 'Growth Marketing Intern',
+      company: 'CampusGrowth',
+      description: 'Support growth campaigns for student tech products.',
+      requirements: ['Marketing basics', 'social media', 'analytics'],
+      salary: '$28 / hour',
+      location: 'Remote',
+      type: 'internship',
+      deadline: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-4',
+      title: 'Backend Automation Engineer',
+      company: 'Circuit Works',
+      description: 'Automate backend workflows for enterprise-scale apps.',
+      requirements: ['Node.js', 'Python', 'CI/CD'],
+      salary: '$95,000 / year',
+      location: 'Bengaluru, India',
+      type: 'full-time',
+      deadline: new Date(Date.now() + 24 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-5',
+      title: 'Game Developer Intern',
+      company: 'PixelForge',
+      description: 'Build immersive game mechanics and interactive UI.',
+      requirements: ['Unity', 'C#', 'game logic'],
+      salary: '$32 / hour',
+      location: 'Los Angeles, CA',
+      type: 'internship',
+      deadline: new Date(Date.now() + 26 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-6',
+      title: 'DevOps Intern',
+      company: 'BuildWave',
+      description: 'Support CI/CD pipelines and deployment tooling.',
+      requirements: ['Docker', 'bash scripting', 'AWS'],
+      salary: '$38 / hour',
+      location: 'Seattle, WA',
+      type: 'internship',
+      deadline: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-7',
+      title: 'Cybersecurity Analyst',
+      company: 'SecureGrid',
+      description: 'Monitor network security and respond to incidents.',
+      requirements: ['Security fundamentals', 'incident response'],
+      salary: '$98,000 / year',
+      location: 'Remote',
+      type: 'full-time',
+      deadline: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-8',
+      title: 'Product Analyst',
+      company: 'InsightHub',
+      description: 'Translate data into product improvements.',
+      requirements: ['data analysis', 'product thinking'],
+      salary: '$72,000 / year',
+      location: 'New York, NY',
+      type: 'full-time',
+      deadline: new Date(Date.now() + 34 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-9',
+      title: 'Frontend Design Intern',
+      company: 'Lumen Creative',
+      description: 'Create polished web interfaces for customer-facing apps.',
+      requirements: ['React', 'CSS', 'visual design'],
+      salary: '$30 / hour',
+      location: 'Remote',
+      type: 'internship',
+      deadline: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      _id: 'fallback-10',
+      title: 'Data Science Intern',
+      company: 'Quantify AI',
+      description: 'Build models, analyze data, and support ML pipelines.',
+      requirements: ['Python', 'statistics', 'machine learning'],
+      salary: '$42 / hour',
+      location: 'Boston, MA',
+      type: 'internship',
+      deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+  ];
+
+  const getDisplayedJobs = () => {
+    if (jobs.length >= 10) return jobs.slice(0, 10);
+    return [...jobs, ...fallbackJobCards.slice(0, 10 - jobs.length)];
+  };
+
   const fetchJobsAndApplications = async () => {
     try {
       setLoading(true);
@@ -314,8 +432,8 @@ const PlacementsPage = () => {
       {/* Main Tabs Panels */}
       {activeTab === 'listings' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {jobs.length > 0 ? (
-            jobs.map((job) => {
+          {getDisplayedJobs().length > 0 ? (
+            getDisplayedJobs().map((job) => {
               const alreadyApplied = applications.some((app) => app.job?._id === job._id);
               return (
                 <div key={job._id} className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/80 rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between hover:shadow-md transition-shadow">

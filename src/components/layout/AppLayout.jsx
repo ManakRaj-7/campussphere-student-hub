@@ -4,6 +4,7 @@ import TopBar from './TopBar';
 import MobileNav from './MobileNav';
 import Loader from '../common/Loader';
 import { useAuth } from '../../hooks/useAuth';
+import CommandPalette from '../common/CommandPalette';
 
 const AppLayout = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -21,6 +22,7 @@ const AppLayout = () => {
       <Sidebar />
       <TopBar />
       <MobileNav />
+      <CommandPalette />
 
       {/* Main content area */}
       <main className="md:ml-[72px] pt-16 pb-20 md:pb-6 min-h-screen">

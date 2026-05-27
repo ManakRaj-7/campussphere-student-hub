@@ -5,8 +5,10 @@ const navItems = [
   { path: '/', icon: 'dashboard', label: 'Dashboard' },
   { path: '/notes', icon: 'note_stack', label: 'Notes' },
   { path: '/placements', icon: 'work', label: 'Placements' },
+  { path: '/courses', icon: 'menu_book', label: 'Courses' },
   { path: '/community', icon: 'groups', label: 'Community' },
   { path: '/wellness', icon: 'self_improvement', label: 'Wellness' },
+  { path: '/about', icon: 'info', label: 'About' },
 ];
 
 const Sidebar = () => {
@@ -22,8 +24,8 @@ const Sidebar = () => {
     <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-[72px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 z-40">
       {/* Logo */}
       <div className="flex items-center justify-center h-16 border-b border-slate-100 dark:border-slate-700">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-          <span className="text-white font-bold text-lg">C</span>
+        <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-indigo-500 to-cyan-500 flex items-center justify-center shadow-2xl shadow-cyan-500/20">
+          <span className="text-white font-black text-lg">CS</span>
         </div>
       </div>
 

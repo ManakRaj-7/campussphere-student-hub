@@ -80,6 +80,29 @@ export const uploadAvatar = async (req, res, next) => {
   }
 };
 
+export const setDefaultAvatar = async (req, res, next) => {
+  try {
+    const { avatarUrl } = req.body;
+    if (!avatarUrl || typeof avatarUrl !== 'string') {
+      throw ApiError.badRequest('Please provide a valid avatar URL.');
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { avatar: avatarUrl },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      throw ApiError.notFound('User not found.');
+    }
+
+    res.status(200).json(formatResponse({ user }, 'Default avatar selected successfully.'));
+  } catch (error) {
+    next(error);
+  }
+};
+
 /**
  * Get all registered users except current user
  * GET /api/users

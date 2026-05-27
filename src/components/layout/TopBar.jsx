@@ -101,7 +101,7 @@ const TopBar = () => {
         <div className="flex items-center gap-4 flex-1">
           <div className="hidden md:block">
             <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-               {getGreeting()}, {user?.name?.split(' ')[0] || 'Student'} 👋
+               {getGreeting()}, {user?.name?.split(' ')[0] || 'Student'}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -110,8 +110,8 @@ const TopBar = () => {
 
           {/* Mobile Logo */}
           <div className="md:hidden flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
+            <div className="w-8 h-8 rounded-2xl bg-gradient-to-br from-fuchsia-600 via-indigo-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-fuchsia-500/20">
+              <Icon name="auto_awesome" className="text-white text-lg" />
             </div>
             <span className="font-bold text-slate-900 dark:text-white">CampusSphere</span>
           </div>
@@ -129,7 +129,7 @@ const TopBar = () => {
                className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-transparent focus:border-indigo-300 dark:focus:border-indigo-600 rounded-xl text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 hidden xl:inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded">
-              ⌘K
+              Alt+K
             </kbd>
           </div>
         </form>

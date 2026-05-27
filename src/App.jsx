@@ -9,6 +9,8 @@ import PlacementsPage from './pages/PlacementsPage';
 import CommunityPage from './pages/CommunityPage';
 import WellnessPage from './pages/WellnessPage';
 import ProfilePage from './pages/ProfilePage';
+import CoursesPage from './pages/CoursesPage';
+import AboutPage from './pages/AboutPage';
 import { useAuth } from './hooks/useAuth';
 import Loader from './components/common/Loader';
 
@@ -79,7 +81,9 @@ const App = () => {
         <Route element={<AppLayout />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/notes" element={<NotesPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
           <Route path="/placements" element={<PlacementsPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/wellness" element={<WellnessPage />} />
           <Route path="/profile" element={<ProfilePage />} />

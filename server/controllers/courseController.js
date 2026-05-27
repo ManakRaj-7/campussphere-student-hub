@@ -84,6 +84,55 @@ export const createCourse = async (req, res, next) => {
 };
 
 /**
+ * Update a course
+ * PUT /api/courses/:id
+ */
+export const updateCourse = async (req, res, next) => {
+  try {
+    const { title, code, department, professor, room, icon, color } = req.body;
+
+    const course = await Course.findById(req.params.id);
+    if (!course) throw ApiError.notFound('Course not found.');
+
+    if (code && code.toUpperCase() !== course.code) {
+      const existing = await Course.findOne({ code: code.toUpperCase() });
+      if (existing) throw ApiError.conflict('A course with this code already exists.');
+      course.code = code.toUpperCase();
+    }
+
+    if (title) course.title = title;
+    if (department) course.department = department;
+    if (typeof professor !== 'undefined') course.professor = professor;
+    if (typeof room !== 'undefined') course.room = room;
+    if (icon) course.icon = icon;
+    if (color) course.color = color;
+
+    await course.save();
+
+    res.status(200).json(formatResponse({ course }, 'Course updated successfully.'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete a course
+ * DELETE /api/courses/:id
+ */
+export const deleteCourse = async (req, res, next) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) throw ApiError.notFound('Course not found.');
+
+    await course.remove();
+
+    res.status(200).json(formatResponse(null, 'Course deleted successfully.'));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Enroll in a course
  * POST /api/courses/:id/enroll
  */

@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { authLogin, authRegister, authGetMe } from '../services/api';
+import { authLogin, authRegister, authGetMe, isApiConfigured } from '../services/api';
 import toast from 'react-hot-toast';
 
 export const AuthContext = createContext(null);
@@ -15,6 +15,12 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const validateToken = async () => {
       const savedToken = localStorage.getItem('campussphere-token');
+      // If the frontend was built without an API URL, notify the user
+      if (!isApiConfigured()) {
+        toast.error('VITE_API_URL is not configured. Set VITE_API_URL in Vercel environment variables to point to your Render backend.');
+        setLoading(false);
+        return;
+      }
       if (!savedToken) {
         setLoading(false);
         return;
@@ -26,7 +32,11 @@ export const AuthProvider = ({ children }) => {
         setUser(userData);
         setToken(savedToken);
       } catch (error) {
+        // Network or server error while validating token
         console.warn('Token validation failed:', error);
+        if (!error.response) {
+          toast.error('Network error: Unable to reach backend. Check VITE_API_URL and backend availability.');
+        }
         localStorage.removeItem('campussphere-token');
         setToken(null);
         setUser(null);

@@ -2,8 +2,15 @@ import axios from 'axios';
 
 const BASE = import.meta.env.VITE_API_URL || '';
 
+// Helper to check whether the API URL is configured at build time
+export const isApiConfigured = () => Boolean(BASE && BASE.length > 0);
+
+const resolvedBase = BASE
+  ? (BASE.endsWith('/') ? `${BASE}api/v1` : `${BASE}/api/v1`)
+  : '/api/v1';
+
 const api = axios.create({
-  baseURL: BASE.endsWith('/') ? `${BASE}api/v1` : (BASE ? `${BASE}/api/v1` : '/api/v1'),
+  baseURL: resolvedBase,
   headers: {
     'Content-Type': 'application/json',
   },

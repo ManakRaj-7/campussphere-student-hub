@@ -55,8 +55,20 @@ setupSocket(server);
 app.use(helmet({
   crossOriginResourcePolicy: false, // Essential for serving uploads locally
 }));
+// CORS configuration: allow configured client URL(s) and Vercel subdomains
+const rawClientUrls = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawClientUrls.split(',').map((s) => s.trim()).filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    // Allow non-browser requests like curl/postman (no origin)
+    if (!origin) return callback(null, true);
+    // Allow if explicitly configured
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    // Allow Vercel preview and production domains
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+    return callback(new Error('CORS policy: This origin is not allowed'), false);
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));
